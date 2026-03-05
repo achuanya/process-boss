@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
@@ -26,6 +26,7 @@ namespace SKM
     /// </summary>
     public partial class App : Application
     {
+        public Window? Window => _window;
         private Window? _window;
 
         /// <summary>
