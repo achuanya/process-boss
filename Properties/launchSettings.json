@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "SKM (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "SKM (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
