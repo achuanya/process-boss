@@ -7,7 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Title="ProcessBoss - 进程监控">
+    Title="调了么 - Process Boss">
 
     <Grid Background="{StaticResource AppBackgroundBrush}">
         <Grid.Resources>
