@@ -7,37 +7,85 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Title="规则编辑"
-    PrimaryButtonText="保存"
-    SecondaryButtonText="取消"
-    PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
-    SecondaryButtonClick="ContentDialog_SecondaryButtonClick">
+    Style="{ThemeResource DefaultContentDialogStyle}">
 
-    <StackPanel Spacing="10" MinWidth="400">
-        <TextBox x:Name="PathTextBox" Header="程序路径" PlaceholderText="C:\Path\To\App.exe" />
-        <Button Content="浏览..." Click="BrowseButton_Click" />
+    <Grid Width="400" Height="450" Background="{StaticResource CardBackgroundBrush}">
+        <Grid x:Name="MainForm">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <TextBlock Text="优先级" Margin="0,10,0,0" />
-        <RadioButtons x:Name="PriorityRadioButtons">
-            <RadioButton Content="实时" Tag="RealTime" />
-            <RadioButton Content="高" Tag="High" />
-            <RadioButton Content="高于正常" Tag="AboveNormal" />
-            <RadioButton Content="正常" Tag="Normal" IsChecked="True" />
-            <RadioButton Content="低于正常" Tag="BelowNormal" />
-            <RadioButton Content="低" Tag="Low" />
-        </RadioButtons>
+            <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="0,0,16,0">
+                <StackPanel Spacing="20" Padding="4">
+                    <!-- Path -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="程序路径" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="PathTextBox" PlaceholderText="C:\Path\To\App.exe" />
+                            <Button Grid.Column="1" Content="浏览" Click="BrowseButton_Click"/>
+                        </Grid>
+                    </StackPanel>
 
-        <TextBlock Text="CPU 相关性" Margin="0,10,0,0" />
-        <StackPanel Orientation="Horizontal" Spacing="10">
-            <CheckBox x:Name="Cpu0Check" Content="CPU0" IsChecked="True" />
-            <CheckBox x:Name="Cpu1Check" Content="CPU1" IsChecked="True" />
-            <CheckBox x:Name="Cpu2Check" Content="CPU2" IsChecked="True" />
-            <CheckBox x:Name="Cpu3Check" Content="CPU3" IsChecked="True" />
-            <!-- In a real app, generate this dynamically based on Environment.ProcessorCount -->
-        </StackPanel>
-        
-        <CheckBox x:Name="EfficiencyModeCheck" Content="启用效率模式" Margin="0,10,0,0" />
-        
-        <CheckBox x:Name="KillCheck" Content="启动后结束进程" />
-        <CheckBox x:Name="KillTreeCheck" Content="启动后结束进程树" />
-    </StackPanel>
+                    <!-- Priority -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="优先级" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                        <ComboBox x:Name="PriorityComboBox" HorizontalAlignment="Stretch" />
+                    </StackPanel>
+
+                    <!-- CPU Affinity -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="CPU 核心限制" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                        <Button x:Name="AffinityButton" Content="所有处理器" HorizontalAlignment="Stretch" Click="ShowAffinityOverlay_Click" HorizontalContentAlignment="Left"/>
+                    </StackPanel>
+                    
+                    <!-- Options -->
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="其他选项" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                        <StackPanel Spacing="8">
+                            <CheckBox x:Name="EfficiencyModeCheck" Content="启用效率模式 (Eco Mode)" />
+                            <CheckBox x:Name="KillCheck" Content="启动后立即结束进程" />
+                            <CheckBox x:Name="KillTreeCheck" Content="启动后结束整个进程树" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Footer Buttons -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,24,0,0">
+                <Button Content="保存" Click="SaveButton_Click" Width="80" Background="{StaticResource AccentBrush}" Foreground="White" BorderThickness="0"/>
+                <Button Content="取消" Click="CancelButton_Click" Width="80"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Affinity Overlay -->
+        <Grid x:Name="AffinityOverlay" Visibility="Collapsed" Background="{StaticResource CardBackgroundBrush}" CornerRadius="8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Padding="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,10">
+                <TextBlock x:Name="AffinitySubtitle" Text="允许哪些处理器运行此程序？" Foreground="{StaticResource TextSecondaryBrush}" Opacity="0.7"/>
+                <CheckBox x:Name="AllProcessorsCheck" Content="所有处理器" Click="AllProcessors_Click"/>
+                <Rectangle Height="1" Fill="{StaticResource CardBorderBrush}" />
+            </StackPanel>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="AffinityStackPanel" Spacing="4">
+                    <!-- Checkboxes will be added here dynamically -->
+                </StackPanel>
+            </ScrollViewer>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,16,0,0">
+                <Button Content="确定" Click="AffinityOk_Click" Width="80" Background="{StaticResource AccentBrush}" Foreground="White" BorderThickness="0"/>
+                <Button Content="取消" Click="AffinityCancel_Click" Width="80"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
 </ContentDialog>

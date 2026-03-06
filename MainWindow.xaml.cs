@@ -1,10 +1,13 @@
+using Microsoft.UI;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using SKM.Models;
 using SKM.Services;
 using SKM.Views;
-using System.Collections.ObjectModel;
 using System;
+using System.Collections.ObjectModel;
+using Windows.Graphics;
 
 namespace SKM
 {
@@ -20,7 +23,33 @@ namespace SKM
             _configService = new ConfigService();
             _monitorService = new MonitorService(_configService);
 
+            InitializeWindow();
             LoadRules();
+        }
+
+        private void InitializeWindow()
+        {
+            // Get AppWindow
+            IntPtr hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            WindowId wndId = Win32Interop.GetWindowIdFromWindow(hWnd);
+            AppWindow appWindow = AppWindow.GetFromWindowId(wndId);
+
+            if (appWindow != null)
+            {
+                // Resize to 1350x900
+                appWindow.Resize(new SizeInt32(1350, 900));
+
+                // Disable Resizing and Maximizing
+                if (appWindow.Presenter is OverlappedPresenter presenter)
+                {
+                    presenter.IsResizable = true;
+                    presenter.IsMaximizable = true;
+                }
+            }
+
+            // Extend content into title bar
+            this.ExtendsContentIntoTitleBar = true;
+            this.SetTitleBar(AppTitleBar); // We will add a Grid named AppTitleBar in XAML
         }
 
         private void LoadRules()
@@ -38,7 +67,7 @@ namespace SKM
             dialog.XamlRoot = this.Content.XamlRoot;
             var result = await dialog.ShowAsync();
 
-            if (result == ContentDialogResult.Primary && dialog.Result != null)
+            if (dialog.Result != null)
             {
                 var newRule = dialog.Result;
                 _configService.AddRule(newRule);
@@ -54,7 +83,7 @@ namespace SKM
                 dialog.XamlRoot = this.Content.XamlRoot;
                 var result = await dialog.ShowAsync();
 
-                if (result == ContentDialogResult.Primary && dialog.Result != null)
+                if (dialog.Result != null)
                 {
                     var updatedRule = dialog.Result;
                     _configService.UpdateRule(rule, updatedRule);
@@ -77,20 +106,18 @@ namespace SKM
             }
         }
 
-        private void StartMonitor_Click(object sender, RoutedEventArgs e)
+        private void MonitorSwitch_Toggled(object sender, RoutedEventArgs e)
         {
-            _monitorService.Start();
-            StartButton.IsEnabled = false;
-            StopButton.IsEnabled = true;
-            StatusTextBlock.Text = "监控中...";
-        }
-
-        private void StopMonitor_Click(object sender, RoutedEventArgs e)
-        {
-            _monitorService.Stop();
-            StartButton.IsEnabled = true;
-            StopButton.IsEnabled = false;
-            StatusTextBlock.Text = "已停止监控";
+            if (MonitorSwitch.IsOn)
+            {
+                _monitorService.Start();
+                StatusTextBlock.Text = "监控中...";
+            }
+            else
+            {
+                _monitorService.Stop();
+                StatusTextBlock.Text = "已停止监控";
+            }
         }
     }
 }

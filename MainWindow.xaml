@@ -9,45 +9,107 @@
     mc:Ignorable="d"
     Title="SKM - 进程监控">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <Grid Background="{StaticResource AppBackgroundBrush}">
+        <!-- Custom Title Bar (Drag Region) -->
+        <Grid x:Name="AppTitleBar" Height="24" VerticalAlignment="Top" Background="Transparent" Canvas.ZIndex="100">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" /> <!-- Caption Buttons Placeholder -->
+            </Grid.ColumnDefinitions>
+        </Grid>
 
-        <CommandBar DefaultLabelPosition="Right">
-            <AppBarButton Icon="Add" Label="添加规则" Click="AddButton_Click" />
-            <AppBarButton Icon="Play" Label="启动监控" Click="StartMonitor_Click" x:Name="StartButton"/>
-            <AppBarButton Icon="Stop" Label="停止监控" Click="StopMonitor_Click" IsEnabled="False" x:Name="StopButton"/>
-        </CommandBar>
+        <!-- Main Content -->
+        <ScrollViewer Padding="0,0,0,24" Canvas.ZIndex="0">
+            <Grid Margin="24,24,24,0" HorizontalAlignment="Stretch">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Switch -->
+                    <RowDefinition Height="Auto"/> <!-- Rules Header -->
+                    <RowDefinition Height="*"/>    <!-- Rules List -->
+                    <RowDefinition Height="Auto"/> <!-- Status -->
+                </Grid.RowDefinitions>
 
-        <ListView x:Name="RulesListView" Grid.Row="1" ItemsSource="{x:Bind Rules}" SelectionMode="Single">
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="models:ProcessRule">
-                    <Grid Padding="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel>
-                            <TextBlock Text="{x:Bind ProcessName}" FontWeight="Bold" />
-                            <TextBlock Text="{x:Bind FullPath}" FontSize="12" Opacity="0.6" />
-                            <StackPanel Orientation="Horizontal" Spacing="5">
-                                <TextBlock Text="{x:Bind Priority}" FontSize="12" />
-                                <TextBlock Text="|" FontSize="12" />
-                                <TextBlock Text="{x:Bind EnableEfficiencyMode}" FontSize="12" />
-                            </StackPanel>
+                <!-- Monitor Switch -->
+                <Grid Grid.Row="0" Margin="0,0,0,24">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                            <TextBlock Text="启用监控服务" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,0,2" />
+                            <ToggleSwitch x:Name="MonitorSwitch" OnContent="" OffContent="" Toggled="MonitorSwitch_Toggled" MinWidth="0" Margin="0,0,0,0" VerticalAlignment="Center" />
                         </StackPanel>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
-                            <Button Content="编辑" Click="EditButton_Click" Tag="{x:Bind}" />
-                            <Button Content="删除" Click="DeleteButton_Click" Tag="{x:Bind}" />
+                        <TextBlock Text="当程序启动时自动应用规则" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" Margin="0,4,0,0" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Rules Header -->
+                <Grid Grid.Row="1" Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="规则列表" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,0,2" />
+                    <Button Grid.Column="1" Click="AddButton_Click" Background="{StaticResource AccentBrush}" Foreground="White" BorderThickness="0" CornerRadius="6" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE710;" FontSize="14" />
+                            <TextBlock Text="添加规则" />
                         </StackPanel>
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-        
-        <TextBlock Grid.Row="2" x:Name="StatusTextBlock" Margin="10" Text="就绪" />
+                    </Button>
+                </Grid>
+
+                <!-- Rules List -->
+                <ListView Grid.Row="2" x:Name="RulesListView" ItemsSource="{x:Bind Rules}" SelectionMode="None">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Margin" Value="0,0,0,12" />
+                            <Setter Property="MinHeight" Value="0" />
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="models:ProcessRule">
+                            <Border CornerRadius="12" BorderThickness="1" Padding="16"
+                                    Background="{StaticResource CardBackgroundBrush}"
+                                    BorderBrush="{StaticResource CardBorderBrush}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="{x:Bind ProcessName}" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                        <TextBlock Text="{x:Bind FullPath}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" TextTrimming="CharacterEllipsis" MaxLines="1" />
+                                        
+                                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                                            <Border Background="#F2F2F7" CornerRadius="6" Padding="8,4">
+                                                <TextBlock Text="{x:Bind Priority}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
+                                            </Border>
+                                            <Border Background="#F2F2F7" CornerRadius="6" Padding="8,4" Visibility="{x:Bind EnableEfficiencyMode}">
+                                                <TextBlock Text="效率模式" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
+                                            </Border>
+                                             <Border Background="#FFF2F2" CornerRadius="6" Padding="8,4" Visibility="{x:Bind KillOnStart}">
+                                                <TextBlock Text="自动结束" FontSize="11" Foreground="#FF3B30"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Button Content="编辑" Click="EditButton_Click" Tag="{x:Bind}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource AccentBrush}" />
+                                        <Button Content="删除" Click="DeleteButton_Click" Tag="{x:Bind}" Background="Transparent" BorderThickness="0" Foreground="#FF3B30" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <TextBlock Grid.Row="3" x:Name="StatusTextBlock" Text="就绪" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" HorizontalAlignment="Center" Margin="0,20" />
+            </Grid>
+        </ScrollViewer>
     </Grid>
 </Window>
