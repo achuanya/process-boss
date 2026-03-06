@@ -8,6 +8,17 @@ using Windows.Storage.Pickers;
 
 namespace SKM.Views
 {
+    public class ComboItem<T>
+    {
+        public T Value { get; set; }
+        public string Display { get; set; }
+
+        public override string ToString()
+        {
+            return Display;
+        }
+    }
+
     public sealed partial class RuleEditorDialog : ContentDialog
     {
         public ProcessRule? Result { get; private set; }
@@ -28,18 +39,91 @@ namespace SKM.Views
             {
                 PathTextBox.Text = existingRule.FullPath;
                 EfficiencyModeCheck.IsChecked = existingRule.EnableEfficiencyMode;
+                DynamicBoostCheck.IsChecked = existingRule.EnableDynamicThreadPriorityBoost;
                 KillCheck.IsChecked = existingRule.KillOnStart;
                 KillTreeCheck.IsChecked = existingRule.KillTreeOnStart;
                 
-                // Set Priority
-                PriorityComboBox.SelectedValue = existingRule.Priority;
+                // Set Priorities
+                SetComboSelection(PriorityComboBox, existingRule.Priority);
+                SetComboSelection(IoPriorityComboBox, existingRule.IoPriority);
+                SetComboSelection(MemoryPriorityComboBox, existingRule.MemoryPriority);
+                SetComboSelection(GpuPriorityComboBox, existingRule.GpuPriority);
             }
+        }
+
+        private void SetComboSelection<T>(ComboBox comboBox, T value)
+        {
+             if (comboBox.ItemsSource == null) return;
+             
+             var items = comboBox.ItemsSource as IEnumerable<ComboItem<T>>;
+             if (items == null) return;
+
+             foreach (var item in items)
+             {
+                 if (EqualityComparer<T>.Default.Equals(item.Value, value))
+                 {
+                     comboBox.SelectedItem = item;
+                     break;
+                 }
+             }
         }
 
         private void InitializePriorityComboBox()
         {
-            PriorityComboBox.ItemsSource = Enum.GetValues(typeof(ProcessPriority));
-            PriorityComboBox.SelectedItem = ProcessPriority.Normal;
+            // CPU: Unchanged, RealTime, High, AboveNormal, Normal, BelowNormal, Idle
+            var cpuList = new List<ComboItem<ProcessPriority>>
+            {
+                new ComboItem<ProcessPriority> { Value = ProcessPriority.Unchanged, Display = ProcessRule.GetPriorityName(ProcessPriority.Unchanged) },
+                new ComboItem<ProcessPriority> { Value = ProcessPriority.RealTime, Display = ProcessRule.GetPriorityName(ProcessPriority.RealTime) },
+                new ComboItem<ProcessPriority> { Value = ProcessPriority.High, Display = ProcessRule.GetPriorityName(ProcessPriority.High) },
+                new ComboItem<ProcessPriority> { Value = ProcessPriority.AboveNormal, Display = ProcessRule.GetPriorityName(ProcessPriority.AboveNormal) },
+                new ComboItem<ProcessPriority> { Value = ProcessPriority.Normal, Display = ProcessRule.GetPriorityName(ProcessPriority.Normal) },
+                new ComboItem<ProcessPriority> { Value = ProcessPriority.BelowNormal, Display = ProcessRule.GetPriorityName(ProcessPriority.BelowNormal) },
+                new ComboItem<ProcessPriority> { Value = ProcessPriority.Idle, Display = ProcessRule.GetPriorityName(ProcessPriority.Idle) }
+            };
+            PriorityComboBox.ItemsSource = cpuList;
+            PriorityComboBox.SelectedIndex = 0; // Unchanged
+
+            // IO: Unchanged, Critical, High, Normal, Low, VeryLow
+            var ioList = new List<ComboItem<ProcessIoPriority>>
+            {
+                new ComboItem<ProcessIoPriority> { Value = ProcessIoPriority.Unchanged, Display = ProcessRule.GetIoPriorityName(ProcessIoPriority.Unchanged) },
+                new ComboItem<ProcessIoPriority> { Value = ProcessIoPriority.Critical, Display = ProcessRule.GetIoPriorityName(ProcessIoPriority.Critical) },
+                new ComboItem<ProcessIoPriority> { Value = ProcessIoPriority.High, Display = ProcessRule.GetIoPriorityName(ProcessIoPriority.High) },
+                new ComboItem<ProcessIoPriority> { Value = ProcessIoPriority.Normal, Display = ProcessRule.GetIoPriorityName(ProcessIoPriority.Normal) },
+                new ComboItem<ProcessIoPriority> { Value = ProcessIoPriority.Low, Display = ProcessRule.GetIoPriorityName(ProcessIoPriority.Low) },
+                new ComboItem<ProcessIoPriority> { Value = ProcessIoPriority.VeryLow, Display = ProcessRule.GetIoPriorityName(ProcessIoPriority.VeryLow) }
+            };
+            IoPriorityComboBox.ItemsSource = ioList;
+            IoPriorityComboBox.SelectedIndex = 0;
+
+            // Memory: Unchanged, Normal, BelowNormal, Medium, Low, VeryLow, Lowest
+            var memList = new List<ComboItem<ProcessMemoryPriority>>
+            {
+                new ComboItem<ProcessMemoryPriority> { Value = ProcessMemoryPriority.Unchanged, Display = ProcessRule.GetMemoryPriorityName(ProcessMemoryPriority.Unchanged) },
+                new ComboItem<ProcessMemoryPriority> { Value = ProcessMemoryPriority.Normal, Display = ProcessRule.GetMemoryPriorityName(ProcessMemoryPriority.Normal) },
+                new ComboItem<ProcessMemoryPriority> { Value = ProcessMemoryPriority.BelowNormal, Display = ProcessRule.GetMemoryPriorityName(ProcessMemoryPriority.BelowNormal) },
+                new ComboItem<ProcessMemoryPriority> { Value = ProcessMemoryPriority.Medium, Display = ProcessRule.GetMemoryPriorityName(ProcessMemoryPriority.Medium) },
+                new ComboItem<ProcessMemoryPriority> { Value = ProcessMemoryPriority.Low, Display = ProcessRule.GetMemoryPriorityName(ProcessMemoryPriority.Low) },
+                new ComboItem<ProcessMemoryPriority> { Value = ProcessMemoryPriority.VeryLow, Display = ProcessRule.GetMemoryPriorityName(ProcessMemoryPriority.VeryLow) },
+                new ComboItem<ProcessMemoryPriority> { Value = ProcessMemoryPriority.Lowest, Display = ProcessRule.GetMemoryPriorityName(ProcessMemoryPriority.Lowest) }
+            };
+            MemoryPriorityComboBox.ItemsSource = memList;
+            MemoryPriorityComboBox.SelectedIndex = 0;
+
+            // GPU: Unchanged, Realtime, High, AboveNormal, Normal, BelowNormal, Idle
+            var gpuList = new List<ComboItem<ProcessGpuPriority>>
+            {
+                new ComboItem<ProcessGpuPriority> { Value = ProcessGpuPriority.Unchanged, Display = ProcessRule.GetGpuPriorityName(ProcessGpuPriority.Unchanged) },
+                new ComboItem<ProcessGpuPriority> { Value = ProcessGpuPriority.Realtime, Display = ProcessRule.GetGpuPriorityName(ProcessGpuPriority.Realtime) },
+                new ComboItem<ProcessGpuPriority> { Value = ProcessGpuPriority.High, Display = ProcessRule.GetGpuPriorityName(ProcessGpuPriority.High) },
+                new ComboItem<ProcessGpuPriority> { Value = ProcessGpuPriority.AboveNormal, Display = ProcessRule.GetGpuPriorityName(ProcessGpuPriority.AboveNormal) },
+                new ComboItem<ProcessGpuPriority> { Value = ProcessGpuPriority.Normal, Display = ProcessRule.GetGpuPriorityName(ProcessGpuPriority.Normal) },
+                new ComboItem<ProcessGpuPriority> { Value = ProcessGpuPriority.BelowNormal, Display = ProcessRule.GetGpuPriorityName(ProcessGpuPriority.BelowNormal) },
+                new ComboItem<ProcessGpuPriority> { Value = ProcessGpuPriority.Idle, Display = ProcessRule.GetGpuPriorityName(ProcessGpuPriority.Idle) }
+            };
+            GpuPriorityComboBox.ItemsSource = gpuList;
+            GpuPriorityComboBox.SelectedIndex = 0;
         }
 
         private void InitializeAffinityList(long currentMask)
@@ -189,14 +273,30 @@ namespace SKM.Views
                 FullPath = PathTextBox.Text,
                 ProcessName = System.IO.Path.GetFileName(PathTextBox.Text),
                 EnableEfficiencyMode = EfficiencyModeCheck.IsChecked ?? false,
+                EnableDynamicThreadPriorityBoost = DynamicBoostCheck.IsChecked,
                 KillOnStart = KillCheck.IsChecked ?? false,
                 KillTreeOnStart = KillTreeCheck.IsChecked ?? false
             };
 
             // Get Priority
-            if (PriorityComboBox.SelectedItem is ProcessPriority p)
+            if (PriorityComboBox.SelectedItem is ComboItem<ProcessPriority> p)
             {
-                Result.Priority = p;
+                Result.Priority = p.Value;
+            }
+
+            if (IoPriorityComboBox.SelectedItem is ComboItem<ProcessIoPriority> io)
+            {
+                Result.IoPriority = io.Value;
+            }
+
+            if (MemoryPriorityComboBox.SelectedItem is ComboItem<ProcessMemoryPriority> mem)
+            {
+                Result.MemoryPriority = mem.Value;
+            }
+
+            if (GpuPriorityComboBox.SelectedItem is ComboItem<ProcessGpuPriority> gpu)
+            {
+                Result.GpuPriority = gpu.Value;
             }
 
             // Get Affinity

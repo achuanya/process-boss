@@ -11,10 +11,22 @@ namespace SKM.Services
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool SetProcessInformation(IntPtr hProcess, int ProcessInformationClass, ref PROCESS_POWER_THROTTLING_STATE ProcessInformation, uint ProcessInformationSize);
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool SetProcessPriorityBoost(IntPtr hProcess, bool DisablePriorityBoost);
+
+        [DllImport("ntdll.dll", SetLastError = true)]
+        private static extern int NtSetInformationProcess(IntPtr ProcessHandle, int ProcessInformationClass, IntPtr ProcessInformation, int ProcessInformationLength);
+
+        [DllImport("gdi32.dll", SetLastError = true)]
+        private static extern int D3DKMTSetProcessSchedulingPriorityClass(IntPtr hProcess, int Priority);
+
         private const int ProcessPowerThrottling = 4;
+        private const int ProcessIoPriorityInfoClass = 33;
+        private const int ProcessMemoryPriorityInfoClass = 39;
+
         private const uint PROCESS_POWER_THROTTLING_CURRENT_VERSION = 1;
         private const uint PROCESS_POWER_THROTTLING_EXECUTION_SPEED = 1;
-        private const uint PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION = 2; // Reserved, but good to know
+        private const uint PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION = 2; 
 
         [StructLayout(LayoutKind.Sequential)]
         private struct PROCESS_POWER_THROTTLING_STATE
@@ -22,6 +34,12 @@ namespace SKM.Services
             public uint Version;
             public uint ControlMask;
             public uint StateMask;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MEMORY_PRIORITY_INFORMATION
+        {
+            public uint MemoryPriority;
         }
 
         public void ApplyRule(Process process, ProcessRule rule)
@@ -40,7 +58,7 @@ namespace SKM.Services
                 // 5. Kill Process Tree
                 if (rule.KillTreeOnStart)
                 {
-                    process.Kill(true); // .NET 8 supports Kill(true) for tree
+                    process.Kill(true); 
                     return;
                 }
 
@@ -53,39 +71,71 @@ namespace SKM.Services
                 // 2. Priority
                 if (rule.Priority != ProcessPriority.Unchanged)
                 {
-                    switch (rule.Priority)
+                    try
                     {
-                        case ProcessPriority.RealTime:
-                            process.PriorityClass = ProcessPriorityClass.RealTime;
-                            break;
-                        case ProcessPriority.High:
-                            process.PriorityClass = ProcessPriorityClass.High;
-                            break;
-                        case ProcessPriority.AboveNormal:
-                            process.PriorityClass = ProcessPriorityClass.AboveNormal;
-                            break;
-                        case ProcessPriority.Normal:
-                            process.PriorityClass = ProcessPriorityClass.Normal;
-                            break;
-                        case ProcessPriority.BelowNormal:
-                            process.PriorityClass = ProcessPriorityClass.BelowNormal;
-                            break;
-                        case ProcessPriority.Low:
-                            process.PriorityClass = ProcessPriorityClass.Idle; // "Low" maps to Idle in .NET enum usually, or strictly Idle
-                            break;
+                        switch (rule.Priority)
+                        {
+                            case ProcessPriority.RealTime:
+                                process.PriorityClass = ProcessPriorityClass.RealTime;
+                                break;
+                            case ProcessPriority.High:
+                                process.PriorityClass = ProcessPriorityClass.High;
+                                break;
+                            case ProcessPriority.AboveNormal:
+                                process.PriorityClass = ProcessPriorityClass.AboveNormal;
+                                break;
+                            case ProcessPriority.Normal:
+                                process.PriorityClass = ProcessPriorityClass.Normal;
+                                break;
+                            case ProcessPriority.BelowNormal:
+                                process.PriorityClass = ProcessPriorityClass.BelowNormal;
+                                break;
+                            case ProcessPriority.Idle:
+                                process.PriorityClass = ProcessPriorityClass.Idle; 
+                                break;
+                        }
                     }
+                    catch (Exception ex) { Debug.WriteLine($"Failed to set CPU Priority: {ex.Message}"); }
                 }
 
                 // 3. Affinity
                 if (rule.CpuAffinityMask != 0)
                 {
-                    // Only apply if the mask is valid for the current system (simple check)
-                    // In a real app, we might want to mask it against Environment.ProcessorCount
                     try
                     {
                         process.ProcessorAffinity = (IntPtr)rule.CpuAffinityMask;
                     }
                     catch (Exception) { /* Ignore if invalid mask for this system */ }
+                }
+
+                // 6. Dynamic Thread Priority Boost
+                if (rule.EnableDynamicThreadPriorityBoost.HasValue)
+                {
+                    try
+                    {
+                        // API expects 'DisablePriorityBoost', so true means Disabled.
+                        bool disable = !rule.EnableDynamicThreadPriorityBoost.Value;
+                        SetProcessPriorityBoost(process.Handle, disable);
+                    }
+                    catch (Exception ex) { Debug.WriteLine($"Failed to set Priority Boost: {ex.Message}"); }
+                }
+
+                // 7. I/O Priority
+                if (rule.IoPriority != ProcessIoPriority.Unchanged)
+                {
+                    SetIoPriority(process.Handle, rule.IoPriority);
+                }
+
+                // 8. Memory Priority
+                if (rule.MemoryPriority != ProcessMemoryPriority.Unchanged)
+                {
+                    SetMemoryPriority(process.Handle, rule.MemoryPriority);
+                }
+
+                // 9. GPU Priority
+                if (rule.GpuPriority != ProcessGpuPriority.Unchanged)
+                {
+                    SetGpuPriority(process.Handle, rule.GpuPriority);
                 }
 
             }
@@ -106,6 +156,54 @@ namespace SKM.Services
 
             uint size = (uint)Marshal.SizeOf<PROCESS_POWER_THROTTLING_STATE>();
             SetProcessInformation(hProcess, ProcessPowerThrottling, ref throttlingState, size);
+        }
+
+        private void SetIoPriority(IntPtr hProcess, ProcessIoPriority priority)
+        {
+            try
+            {
+                int ioPriority = (int)priority;
+                IntPtr ptr = Marshal.AllocHGlobal(sizeof(int));
+                Marshal.WriteInt32(ptr, ioPriority);
+                try
+                {
+                    NtSetInformationProcess(hProcess, ProcessIoPriorityInfoClass, ptr, sizeof(int));
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(ptr);
+                }
+            }
+            catch (Exception ex) { Debug.WriteLine($"Failed to set I/O Priority: {ex.Message}"); }
+        }
+
+        private void SetMemoryPriority(IntPtr hProcess, ProcessMemoryPriority priority)
+        {
+            try
+            {
+                var info = new MEMORY_PRIORITY_INFORMATION { MemoryPriority = (uint)priority };
+                int size = Marshal.SizeOf(info);
+                IntPtr ptr = Marshal.AllocHGlobal(size);
+                Marshal.StructureToPtr(info, ptr, false);
+                try
+                {
+                    NtSetInformationProcess(hProcess, ProcessMemoryPriorityInfoClass, ptr, size);
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(ptr);
+                }
+            }
+            catch (Exception ex) { Debug.WriteLine($"Failed to set Memory Priority: {ex.Message}"); }
+        }
+
+        private void SetGpuPriority(IntPtr hProcess, ProcessGpuPriority priority)
+        {
+            try
+            {
+                D3DKMTSetProcessSchedulingPriorityClass(hProcess, (int)priority);
+            }
+            catch (Exception ex) { Debug.WriteLine($"Failed to set GPU Priority: {ex.Message}"); }
         }
     }
 }

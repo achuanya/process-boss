@@ -60,7 +60,7 @@
                                         
                                         <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
                                             <Border Background="#F2F2F7" CornerRadius="6" Padding="8,4">
-                                                <TextBlock Text="{x:Bind Priority}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
+                                                <TextBlock Text="{x:Bind PriorityDisplay}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
                                             </Border>
                                             <Border Background="#F2F2F7" CornerRadius="6" Padding="8,4" Visibility="{x:Bind EnableEfficiencyMode}">
                                                 <TextBlock Text="效率模式" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />

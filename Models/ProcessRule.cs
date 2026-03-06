@@ -11,8 +11,40 @@ namespace SKM.Models
         AboveNormal,
         Normal,
         BelowNormal,
-        Low,
+        Idle,
         Unchanged // Default, do not modify
+    }
+
+    public enum ProcessIoPriority
+    {
+        VeryLow = 0,
+        Low = 1,
+        Normal = 2,
+        High = 3,
+        Critical = 4,
+        Unchanged = -1
+    }
+
+    public enum ProcessMemoryPriority
+    {
+        Lowest = 0,
+        VeryLow = 1,
+        Low = 2,
+        Medium = 3,
+        BelowNormal = 4,
+        Normal = 5,
+        Unchanged = -1
+    }
+
+    public enum ProcessGpuPriority
+    {
+        Idle = 0,
+        BelowNormal = 1,
+        Normal = 2,
+        AboveNormal = 3,
+        High = 4,
+        Realtime = 5,
+        Unchanged = -1
     }
 
     public class ProcessRule
@@ -28,7 +60,89 @@ namespace SKM.Models
         
         public bool EnableEfficiencyMode { get; set; }
         
+        // Dynamic Thread Priority Boost
+        // null = Unchanged
+        // true = Enable
+        // false = Disable
+        public bool? EnableDynamicThreadPriorityBoost { get; set; }
+
+        public ProcessIoPriority IoPriority { get; set; } = ProcessIoPriority.Unchanged;
+        public ProcessMemoryPriority MemoryPriority { get; set; } = ProcessMemoryPriority.Unchanged;
+        public ProcessGpuPriority GpuPriority { get; set; } = ProcessGpuPriority.Unchanged;
+
         public bool KillOnStart { get; set; }
         public bool KillTreeOnStart { get; set; }
+
+        // Localization Helpers
+        [JsonIgnore]
+        public string PriorityDisplay => GetPriorityName(Priority);
+        
+        [JsonIgnore]
+        public string IoPriorityDisplay => GetIoPriorityName(IoPriority);
+        
+        [JsonIgnore]
+        public string MemoryPriorityDisplay => GetMemoryPriorityName(MemoryPriority);
+        
+        [JsonIgnore]
+        public string GpuPriorityDisplay => GetGpuPriorityName(GpuPriority);
+
+        public static string GetPriorityName(ProcessPriority p)
+        {
+            return p switch
+            {
+                ProcessPriority.RealTime => "实时",
+                ProcessPriority.High => "高",
+                ProcessPriority.AboveNormal => "高于正常",
+                ProcessPriority.Normal => "正常",
+                ProcessPriority.BelowNormal => "低于正常",
+                ProcessPriority.Idle => "空闲",
+                ProcessPriority.Unchanged => "默认",
+                _ => p.ToString()
+            };
+        }
+
+        public static string GetIoPriorityName(ProcessIoPriority p)
+        {
+            return p switch
+            {
+                ProcessIoPriority.VeryLow => "非常低",
+                ProcessIoPriority.Low => "低",
+                ProcessIoPriority.Normal => "正常",
+                ProcessIoPriority.High => "高",
+                ProcessIoPriority.Critical => "关键",
+                ProcessIoPriority.Unchanged => "默认",
+                _ => p.ToString()
+            };
+        }
+
+        public static string GetMemoryPriorityName(ProcessMemoryPriority p)
+        {
+            return p switch
+            {
+                ProcessMemoryPriority.Lowest => "最低",
+                ProcessMemoryPriority.VeryLow => "非常低",
+                ProcessMemoryPriority.Low => "低",
+                ProcessMemoryPriority.Medium => "中",
+                ProcessMemoryPriority.BelowNormal => "低于正常",
+                ProcessMemoryPriority.Normal => "正常",
+                ProcessMemoryPriority.Unchanged => "默认",
+                _ => p.ToString()
+            };
+        }
+
+        public static string GetGpuPriorityName(ProcessGpuPriority p)
+        {
+            return p switch
+            {
+                ProcessGpuPriority.Idle => "空闲",
+                ProcessGpuPriority.BelowNormal => "低于正常",
+                ProcessGpuPriority.Normal => "正常",
+                ProcessGpuPriority.AboveNormal => "高于正常",
+                ProcessGpuPriority.High => "高",
+                ProcessGpuPriority.Realtime => "实时",
+                ProcessGpuPriority.Unchanged => "默认",
+                _ => p.ToString()
+            };
+        }
     }
 }
