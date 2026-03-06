@@ -79,37 +79,71 @@ namespace ProcessBoss.Views
             }
         }
 
-        // AddButton_Click will be removed later as the button is moving to MainWindow
-        // For now we keep the event handler signature if XAML still references it, 
-        // but since we are removing the XAML button in the next step, we can remove this method too 
-        // or just keep it empty if needed for compilation during transition.
-        // Actually I will remove the method entirely when I update XAML.
-        
-        private async void EditButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.Tag is ProcessRule rule)
-            {
-                var dialog = new RuleEditorDialog(rule);
-                dialog.XamlRoot = this.Content.XamlRoot;
-                var result = await dialog.ShowAsync();
+        private long _lastRightClickTime;
+        private ProcessRule? _lastRightClickItem;
 
-                if (dialog.Result != null)
+        private void Item_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
+        {
+            if (sender is FrameworkElement element && element.Tag is ProcessRule rule)
+            {
+                EditRule(rule);
+            }
+        }
+
+        private void Item_RightTapped(object sender, Microsoft.UI.Xaml.Input.RightTappedRoutedEventArgs e)
+        {
+            if (sender is FrameworkElement element && element.Tag is ProcessRule rule)
+            {
+                // Simple double right click detection
+                long now = Environment.TickCount64;
+                if (_lastRightClickItem == rule && (now - _lastRightClickTime) < 500)
                 {
-                    var updatedRule = dialog.Result;
-                    _configService.UpdateRule(rule, updatedRule);
-                    
-                    int index = Rules.IndexOf(rule);
-                    if (index != -1)
-                    {
-                        Rules[index] = updatedRule;
-                    }
+                    // Reset to avoid triple click triggering again immediately
+                    _lastRightClickItem = null;
+                    ConfirmDeleteRule(rule);
+                }
+                else
+                {
+                    _lastRightClickItem = rule;
+                    _lastRightClickTime = now;
                 }
             }
         }
 
-        private void DeleteButton_Click(object sender, RoutedEventArgs e)
+        private async void EditRule(ProcessRule rule)
         {
-            if (sender is Button btn && btn.Tag is ProcessRule rule)
+            var dialog = new RuleEditorDialog(rule);
+            dialog.XamlRoot = this.Content.XamlRoot;
+            var result = await dialog.ShowAsync();
+
+            if (dialog.Result != null)
+            {
+                var updatedRule = dialog.Result;
+                _configService.UpdateRule(rule, updatedRule);
+                
+                int index = Rules.IndexOf(rule);
+                if (index != -1)
+                {
+                    Rules[index] = updatedRule;
+                }
+            }
+        }
+
+        private async void ConfirmDeleteRule(ProcessRule rule)
+        {
+            ContentDialog deleteDialog = new ContentDialog
+            {
+                Title = "删除规则",
+                Content = $"确定要删除 \"{rule.ProcessName}\" 的规则吗？",
+                PrimaryButtonText = "删除",
+                CloseButtonText = "取消",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = this.Content.XamlRoot
+            };
+
+            var result = await deleteDialog.ShowAsync();
+
+            if (result == ContentDialogResult.Primary)
             {
                 _configService.RemoveRule(rule);
                 Rules.Remove(rule);
