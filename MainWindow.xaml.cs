@@ -66,11 +66,18 @@ namespace ProcessBoss
                 }
 
                 _appWindow.Changed += AppWindow_Changed;
+                _appWindow.Closing += AppWindow_Closing;
             }
 
             // Extend content into title bar
             this.ExtendsContentIntoTitleBar = true;
             this.SetTitleBar(AppTitleBar); 
+        }
+
+        private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
+        {
+            // Ensure we stop monitoring and restore processes before closing
+            _monitorService.Stop();
         }
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)

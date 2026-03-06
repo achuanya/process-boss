@@ -15,6 +15,7 @@ namespace ProcessBoss.Services
         private readonly ConfigService _configService;
         private readonly ProcessOptimizer _optimizer;
         private bool _isRunning;
+        private readonly HashSet<int> _managedProcessIds = new HashSet<int>();
 
         // Use a timer as a fallback or complementary check, 
         // because WMI events might be missed or slow, 
@@ -30,6 +31,46 @@ namespace ProcessBoss.Services
 
             _configService.RuleAdded += OnRuleChanged;
             _configService.RuleUpdated += OnRuleChanged;
+            _configService.RuleRemoved += OnRuleRemoved;
+        }
+
+        private void OnRuleRemoved(ProcessRule rule)
+        {
+            // When a rule is removed, we should restore defaults to those processes
+            RestoreRuleDefaults(rule);
+        }
+
+        private void RestoreRuleDefaults(ProcessRule rule)
+        {
+            Task.Run(() =>
+            {
+                try
+                {
+                    string pNameNoExt = System.IO.Path.GetFileNameWithoutExtension(rule.ProcessName);
+                    var processes = Process.GetProcessesByName(pNameNoExt);
+                    foreach (var p in processes)
+                    {
+                        try
+                        {
+                            if (!string.IsNullOrEmpty(rule.FullPath))
+                            {
+                                if (p.MainModule?.FileName != null &&
+                                    !p.MainModule.FileName.Equals(rule.FullPath, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    continue;
+                                }
+                            }
+                            _optimizer.RestoreDefaults(p);
+                            lock (_managedProcessIds)
+                            {
+                                _managedProcessIds.Remove(p.Id);
+                            }
+                        }
+                        catch { }
+                    }
+                }
+                catch { }
+            });
         }
 
         private void OnRuleChanged(ProcessRule rule)
@@ -61,6 +102,10 @@ namespace ProcessBoss.Services
                                 }
                             }
                             _optimizer.ApplyRule(p, rule);
+                            lock (_managedProcessIds)
+                            {
+                                _managedProcessIds.Add(p.Id);
+                            }
                         }
                         catch { }
                     }
@@ -159,6 +204,10 @@ namespace ProcessBoss.Services
                         }
 
                         _optimizer.ApplyRule(process, matchedRule);
+                        lock (_managedProcessIds)
+                        {
+                            _managedProcessIds.Add(processId);
+                        }
                     }
                     catch (Exception) { }
                 }
@@ -194,6 +243,10 @@ namespace ProcessBoss.Services
                          catch { return; }
                      }
                      _optimizer.ApplyRule(p, matchedRule);
+                     lock (_managedProcessIds)
+                     {
+                         _managedProcessIds.Add(p.Id);
+                     }
                 }
             }
             catch { }
@@ -208,6 +261,29 @@ namespace ProcessBoss.Services
             
             _cts?.Cancel();
             _cts = null;
+
+            // Restore defaults for all managed processes
+            RestoreAllDefaults();
+        }
+
+        private void RestoreAllDefaults()
+        {
+            int[] pids;
+            lock (_managedProcessIds)
+            {
+                pids = _managedProcessIds.ToArray();
+                _managedProcessIds.Clear();
+            }
+
+            foreach (var pid in pids)
+            {
+                try
+                {
+                    var p = Process.GetProcessById(pid);
+                    _optimizer.RestoreDefaults(p);
+                }
+                catch { /* Process likely exited */ }
+            }
         }
 
         public void Dispose()
@@ -215,6 +291,7 @@ namespace ProcessBoss.Services
             Stop();
             _configService.RuleAdded -= OnRuleChanged;
             _configService.RuleUpdated -= OnRuleChanged;
+            _configService.RuleRemoved -= OnRuleRemoved;
         }
     }
 }

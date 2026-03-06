@@ -67,11 +67,18 @@ namespace ProcessBoss.Services
                 {
                     SetEfficiencyMode(process.Handle, true);
                 }
+                else
+                {
+                    // Restore to false if unchecked? 
+                    // Usually if rule is updated to false, we want to disable it.
+                    // If it was already false, no harm.
+                    SetEfficiencyMode(process.Handle, false);
+                }
 
                 // 2. Priority
-                if (rule.Priority != ProcessPriority.Unchanged)
+                try
                 {
-                    try
+                    if (rule.Priority != ProcessPriority.Unchanged)
                     {
                         switch (rule.Priority)
                         {
@@ -95,18 +102,29 @@ namespace ProcessBoss.Services
                                 break;
                         }
                     }
-                    catch (Exception ex) { Debug.WriteLine($"Failed to set CPU Priority: {ex.Message}"); }
+                    else
+                    {
+                        // User requested "Unchanged" (Default), so restore to Normal
+                        process.PriorityClass = ProcessPriorityClass.Normal;
+                    }
                 }
+                catch (Exception ex) { Debug.WriteLine($"Failed to set CPU Priority: {ex.Message}"); }
 
                 // 3. Affinity
-                if (rule.CpuAffinityMask != 0)
+                try
                 {
-                    try
+                    if (rule.CpuAffinityMask != 0)
                     {
                         process.ProcessorAffinity = (IntPtr)rule.CpuAffinityMask;
                     }
-                    catch (Exception) { /* Ignore if invalid mask for this system */ }
+                    else
+                    {
+                        // Restore to all processors
+                        long allCores = (1L << Environment.ProcessorCount) - 1;
+                        process.ProcessorAffinity = (IntPtr)allCores;
+                    }
                 }
+                catch (Exception) { /* Ignore if invalid mask for this system */ }
 
                 // 6. Dynamic Thread Priority Boost
                 if (rule.EnableDynamicThreadPriorityBoost.HasValue)
@@ -119,11 +137,25 @@ namespace ProcessBoss.Services
                     }
                     catch (Exception ex) { Debug.WriteLine($"Failed to set Priority Boost: {ex.Message}"); }
                 }
+                else
+                {
+                    // Restore to Default (Enabled)
+                    try
+                    {
+                        SetProcessPriorityBoost(process.Handle, false); // Disable = false => Enabled
+                    }
+                    catch { }
+                }
 
                 // 7. I/O Priority
                 if (rule.IoPriority != ProcessIoPriority.Unchanged)
                 {
                     SetIoPriority(process.Handle, rule.IoPriority);
+                }
+                else
+                {
+                    // Restore to Normal
+                    SetIoPriority(process.Handle, ProcessIoPriority.Normal);
                 }
 
                 // 8. Memory Priority
@@ -131,17 +163,65 @@ namespace ProcessBoss.Services
                 {
                     SetMemoryPriority(process.Handle, rule.MemoryPriority);
                 }
+                else
+                {
+                    // Restore to Normal
+                    SetMemoryPriority(process.Handle, ProcessMemoryPriority.Normal);
+                }
 
                 // 9. GPU Priority
                 if (rule.GpuPriority != ProcessGpuPriority.Unchanged)
                 {
                     SetGpuPriority(process.Handle, rule.GpuPriority);
                 }
+                else
+                {
+                    // Restore to Normal
+                    SetGpuPriority(process.Handle, ProcessGpuPriority.Normal);
+                }
 
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Failed to apply rule for {process.ProcessName}: {ex.Message}");
+            }
+        }
+
+        public void RestoreDefaults(Process process)
+        {
+            try
+            {
+                if (process.HasExited) return;
+
+                // 1. Efficiency Mode -> Off
+                SetEfficiencyMode(process.Handle, false);
+
+                // 2. Priority -> Normal
+                try { process.PriorityClass = ProcessPriorityClass.Normal; } catch { }
+
+                // 3. Affinity -> All Cores
+                try
+                {
+                    long allCores = (1L << Environment.ProcessorCount) - 1;
+                    process.ProcessorAffinity = (IntPtr)allCores;
+                }
+                catch { }
+
+                // 4. Boost -> Enabled
+                try { SetProcessPriorityBoost(process.Handle, false); } catch { }
+
+                // 5. I/O -> Normal
+                SetIoPriority(process.Handle, ProcessIoPriority.Normal);
+
+                // 6. Memory -> Normal
+                SetMemoryPriority(process.Handle, ProcessMemoryPriority.Normal);
+
+                // 7. GPU -> Normal
+                SetGpuPriority(process.Handle, ProcessGpuPriority.Normal);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to restore defaults for {process.ProcessName}: {ex.Message}");
             }
         }
 
