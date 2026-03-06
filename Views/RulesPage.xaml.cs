@@ -17,13 +17,57 @@ namespace ProcessBoss.Views
         public RulesPage()
         {
             this.InitializeComponent();
+            this.Unloaded += RulesPage_Unloaded;
+        }
+
+        private void RulesPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            if (_configService != null)
+            {
+                _configService.RuleAdded -= OnRuleAdded;
+                _configService.RuleRemoved -= OnRuleRemoved;
+                _configService.RuleUpdated -= OnRuleUpdated;
+            }
         }
 
         public void Initialize(ConfigService configService, MonitorService monitorService)
         {
             _configService = configService;
             _monitorService = monitorService;
+
+            _configService.RuleAdded += OnRuleAdded;
+            _configService.RuleRemoved += OnRuleRemoved;
+            _configService.RuleUpdated += OnRuleUpdated;
+
             LoadRules();
+        }
+
+        private void OnRuleAdded(ProcessRule rule)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                Rules.Add(rule);
+            });
+        }
+
+        private void OnRuleRemoved(ProcessRule rule)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                Rules.Remove(rule);
+            });
+        }
+
+        private void OnRuleUpdated(ProcessRule rule)
+        {
+            this.DispatcherQueue.TryEnqueue(() =>
+            {
+                int index = Rules.IndexOf(rule);
+                if (index != -1)
+                {
+                    Rules[index] = rule;
+                }
+            });
         }
 
         private void LoadRules()
@@ -35,20 +79,12 @@ namespace ProcessBoss.Views
             }
         }
 
-        private async void AddButton_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new RuleEditorDialog();
-            dialog.XamlRoot = this.Content.XamlRoot;
-            var result = await dialog.ShowAsync();
-
-            if (dialog.Result != null)
-            {
-                var newRule = dialog.Result;
-                _configService.AddRule(newRule);
-                Rules.Add(newRule);
-            }
-        }
-
+        // AddButton_Click will be removed later as the button is moving to MainWindow
+        // For now we keep the event handler signature if XAML still references it, 
+        // but since we are removing the XAML button in the next step, we can remove this method too 
+        // or just keep it empty if needed for compilation during transition.
+        // Actually I will remove the method entirely when I update XAML.
+        
         private async void EditButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.Tag is ProcessRule rule)

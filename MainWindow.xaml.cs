@@ -135,9 +135,27 @@ namespace ProcessBoss
 
         private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
-            if (args.InvokedItemContainer?.Tag?.ToString() == "ToggleMonitor")
+            var tag = args.InvokedItemContainer?.Tag?.ToString();
+            if (tag == "ToggleMonitor")
             {
                 ToggleMonitor();
+            }
+            else if (tag == "AddRule")
+            {
+                AddRule();
+            }
+        }
+
+        private async void AddRule()
+        {
+            var dialog = new RuleEditorDialog();
+            dialog.XamlRoot = this.Content.XamlRoot;
+            var result = await dialog.ShowAsync();
+
+            if (dialog.Result != null)
+            {
+                var newRule = dialog.Result;
+                _configService.AddRule(newRule);
             }
         }
 

@@ -65,12 +65,12 @@
             <NavigationView.MenuItems>
                 <NavigationViewItem Content="规则列表" Tag="Rules">
                     <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE8F2;" FontSize="14"/>
+                        <FontIcon Glyph="&#xE90B;" FontSize="14"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem Content="系统进程" Tag="Processes">
                     <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE71D;" FontSize="14"/>
+                        <FontIcon Glyph="&#xE950;" FontSize="14"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItemSeparator />
@@ -96,6 +96,11 @@
                             <TextBlock x:Name="MonitorText" Text="开始调教" VerticalAlignment="Center" />
                         </StackPanel>
                     </NavigationViewItem.Content>
+                </NavigationViewItem>
+                <NavigationViewItem Content="添加规则" Tag="AddRule" SelectsOnInvoked="False">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE710;" FontSize="14"/>
+                    </NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.MenuItems>
 
