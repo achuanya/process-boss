@@ -31,6 +31,9 @@
             
             <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FF9F0A" />
             <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#FF9F0A" />
+            
+            <local:StringVisibilityConverter x:Key="StringVisibilityConverter" />
+            <local:PrefixConverter x:Key="PrefixConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

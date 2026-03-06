@@ -51,7 +51,9 @@ namespace ProcessBoss.Models
     {
         public string ProcessName { get; set; } = string.Empty; // e.g., "notepad.exe"
         public string FullPath { get; set; } = string.Empty; // Optional, for stricter matching
-        
+        public string Remarks { get; set; } = string.Empty;
+        public bool IsEnabled { get; set; } = true;
+
         public ProcessPriority Priority { get; set; } = ProcessPriority.Unchanged;
         
         // Bitmask for CPU Affinity. 0 means all cores (or no change).
@@ -85,6 +87,41 @@ namespace ProcessBoss.Models
         
         [JsonIgnore]
         public string GpuPriorityDisplay => GetGpuPriorityName(GpuPriority);
+
+        [JsonIgnore]
+        public bool IsPrioritySet => Priority != ProcessPriority.Unchanged;
+        [JsonIgnore]
+        public bool IsAffinitySet => CpuAffinityMask != 0;
+        [JsonIgnore]
+        public bool IsDynamicBoostSet => EnableDynamicThreadPriorityBoost.HasValue;
+        [JsonIgnore]
+        public bool IsIoPrioritySet => IoPriority != ProcessIoPriority.Unchanged;
+        [JsonIgnore]
+        public bool IsMemoryPrioritySet => MemoryPriority != ProcessMemoryPriority.Unchanged;
+        [JsonIgnore]
+        public bool IsGpuPrioritySet => GpuPriority != ProcessGpuPriority.Unchanged;
+        [JsonIgnore]
+        public bool IsEfficiencyModeSet => EnableEfficiencyMode;
+        [JsonIgnore]
+        public bool IsKillSet => KillOnStart || KillTreeOnStart;
+
+        [JsonIgnore]
+        public string CpuAffinityDisplay
+        {
+            get
+            {
+                if (CpuAffinityMask == 0) return "默认";
+                int count = 0;
+                for (int i = 0; i < 64; i++)
+                {
+                    if ((CpuAffinityMask & (1L << i)) != 0) count++;
+                }
+                return $"CPU 核心: {count}";
+            }
+        }
+
+        [JsonIgnore]
+        public string DynamicBoostDisplay => EnableDynamicThreadPriorityBoost.HasValue ? (EnableDynamicThreadPriorityBoost.Value ? "动态提升: 开" : "动态提升: 关") : "默认";
 
         public static string GetPriorityName(ProcessPriority p)
         {

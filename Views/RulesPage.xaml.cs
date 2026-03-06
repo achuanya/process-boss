@@ -79,5 +79,16 @@ namespace ProcessBoss.Views
                 Rules.Remove(rule);
             }
         }
+
+        private void RuleToggle_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch ts && ts.Tag is ProcessRule rule)
+            {
+                // IsEnabled is updated via TwoWay binding, but we need to notify ConfigService
+                // to trigger MonitorService update and save to disk.
+                // We pass the same object as old and new, ConfigService handles it by index.
+                _configService.UpdateRule(rule, rule);
+            }
+        }
     }
 }

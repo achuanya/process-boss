@@ -23,6 +23,7 @@ namespace ProcessBoss.Views
     {
         public ProcessRule? Result { get; private set; }
         private readonly List<CheckBox> _affinityCheckBoxes = new List<CheckBox>();
+        private bool _originalIsEnabled = true;
         
         // Temporarily store button texts when overlay is shown
         // private string _tempPrimaryText = "";
@@ -37,7 +38,9 @@ namespace ProcessBoss.Views
 
             if (existingRule != null)
             {
+                _originalIsEnabled = existingRule.IsEnabled;
                 PathTextBox.Text = existingRule.FullPath;
+                RemarksTextBox.Text = existingRule.Remarks;
                 EfficiencyModeCheck.IsChecked = existingRule.EnableEfficiencyMode;
                 DynamicBoostCheck.IsChecked = existingRule.EnableDynamicThreadPriorityBoost;
                 KillCheck.IsChecked = existingRule.KillOnStart;
@@ -270,8 +273,10 @@ namespace ProcessBoss.Views
 
             Result = new ProcessRule
             {
+                IsEnabled = _originalIsEnabled,
                 FullPath = PathTextBox.Text,
                 ProcessName = System.IO.Path.GetFileName(PathTextBox.Text),
+                Remarks = RemarksTextBox.Text,
                 EnableEfficiencyMode = EfficiencyModeCheck.IsChecked ?? false,
                 EnableDynamicThreadPriorityBoost = DynamicBoostCheck.IsChecked,
                 KillOnStart = KillCheck.IsChecked ?? false,

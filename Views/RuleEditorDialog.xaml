@@ -18,17 +18,12 @@
 
             <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="0,0,16,0">
                 <StackPanel Spacing="20" Padding="4">
-                    <!-- Path -->
+                    <!-- Basic Info -->
                     <StackPanel Spacing="8">
-                        <TextBlock Text="程序路径" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                        <Grid ColumnSpacing="8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="PathTextBox" PlaceholderText="C:\Path\To\App.exe" />
-                            <Button Grid.Column="1" Content="浏览" Click="BrowseButton_Click"/>
-                        </Grid>
+                        <TextBox x:Name="PathTextBox" Header="程序路径" PlaceholderText="C:\Path\To\App.exe" />
+                        <Button Content="浏览" Click="BrowseButton_Click" HorizontalAlignment="Right" Margin="0,-64,0,0"/>
+
+                        <TextBox x:Name="RemarksTextBox" Header="备注" PlaceholderText="例如：游戏模式、办公优化" />
                     </StackPanel>
 
                     <!-- CPU Performance -->

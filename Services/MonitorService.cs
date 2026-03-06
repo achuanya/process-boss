@@ -52,10 +52,17 @@ namespace ProcessBoss.Services
                     {
                         try
                         {
+                            // Check path if possible, but don't fail if Access Denied
                             if (!string.IsNullOrEmpty(rule.FullPath))
                             {
-                                if (p.MainModule?.FileName != null &&
-                                    !p.MainModule.FileName.Equals(rule.FullPath, StringComparison.OrdinalIgnoreCase))
+                                string? processPath = null;
+                                try
+                                {
+                                    processPath = p.MainModule?.FileName;
+                                }
+                                catch { /* Ignore access denied, assume match by name */ }
+
+                                if (processPath != null && !processPath.Equals(rule.FullPath, StringComparison.OrdinalIgnoreCase))
                                 {
                                     continue;
                                 }
@@ -77,7 +84,15 @@ namespace ProcessBoss.Services
         {
             if (_isRunning)
             {
-                ApplyRuleToRunningProcesses(rule);
+                if (rule.IsEnabled)
+                {
+                    ApplyRuleToRunningProcesses(rule);
+                }
+                else
+                {
+                    // Rule disabled -> restore defaults
+                    RestoreRuleDefaults(rule);
+                }
             }
         }
 
@@ -93,14 +108,22 @@ namespace ProcessBoss.Services
                     {
                         try
                         {
+                            // Check path if possible, but don't fail if Access Denied
                             if (!string.IsNullOrEmpty(rule.FullPath))
                             {
-                                if (p.MainModule?.FileName != null &&
-                                    !p.MainModule.FileName.Equals(rule.FullPath, StringComparison.OrdinalIgnoreCase))
+                                string? processPath = null;
+                                try
+                                {
+                                    processPath = p.MainModule?.FileName;
+                                }
+                                catch { /* Ignore access denied, assume match by name */ }
+
+                                if (processPath != null && !processPath.Equals(rule.FullPath, StringComparison.OrdinalIgnoreCase))
                                 {
                                     continue;
                                 }
                             }
+
                             _optimizer.ApplyRule(p, rule);
                             lock (_managedProcessIds)
                             {
@@ -185,22 +208,26 @@ namespace ProcessBoss.Services
                 var matchedRule = _configService.Rules.FirstOrDefault(r => 
                     r.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase));
 
-                if (matchedRule != null)
+                if (matchedRule != null && matchedRule.IsEnabled)
                 {
                     try
                     {
                         var process = Process.GetProcessById(processId);
+                        
+                        // Check path if possible
                         if (!string.IsNullOrEmpty(matchedRule.FullPath))
                         {
+                            string? processPath = null;
                             try 
                             {
-                                if (process.MainModule?.FileName != null && 
-                                    !process.MainModule.FileName.Equals(matchedRule.FullPath, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    return; 
-                                }
+                                processPath = process.MainModule?.FileName;
                             }
                             catch { /* access denied */ }
+
+                            if (processPath != null && !processPath.Equals(matchedRule.FullPath, StringComparison.OrdinalIgnoreCase))
+                            {
+                                return; 
+                            }
                         }
 
                         _optimizer.ApplyRule(process, matchedRule);
@@ -229,18 +256,22 @@ namespace ProcessBoss.Services
                     r.ProcessName.Equals(pName, StringComparison.OrdinalIgnoreCase) || 
                     r.ProcessName.Equals(p.ProcessName, StringComparison.OrdinalIgnoreCase));
 
-                if (matchedRule != null)
+                if (matchedRule != null && matchedRule.IsEnabled)
                 {
+                     // Check path if possible
                      if (!string.IsNullOrEmpty(matchedRule.FullPath))
                      {
+                         string? processPath = null;
                          try
                          {
-                             if (p.MainModule?.FileName != null && !p.MainModule.FileName.Equals(matchedRule.FullPath, StringComparison.OrdinalIgnoreCase))
-                             {
-                                 return;
-                             }
+                             processPath = p.MainModule?.FileName;
                          }
-                         catch { return; }
+                         catch { /* Access denied */ }
+
+                         if (processPath != null && !processPath.Equals(matchedRule.FullPath, StringComparison.OrdinalIgnoreCase))
+                         {
+                             return;
+                         }
                      }
                      _optimizer.ApplyRule(p, matchedRule);
                      lock (_managedProcessIds)
