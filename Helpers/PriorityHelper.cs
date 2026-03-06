@@ -75,9 +75,9 @@ namespace ProcessBoss.Helpers
             return $"CPU 核心: {count}";
         }
 
-        public static string GetDynamicBoostDisplay(bool? boost)
+        public static string GetDynamicBoostDisplay(bool boost)
         {
-            return boost.HasValue ? (boost.Value ? "动态提升: 开" : "动态提升: 关") : "默认";
+            return boost ? "动态提升: 开" : "动态提升: 关";
         }
     }
 }

@@ -19,12 +19,14 @@
             <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="0,0,16,0">
                 <StackPanel Spacing="20" Padding="4">
                     <!-- Basic Info -->
-                    <StackPanel Spacing="8">
-                        <TextBox x:Name="PathTextBox" Header="程序路径" PlaceholderText="C:\Path\To\App.exe" />
-                        <Button Content="浏览" Click="BrowseButton_Click" HorizontalAlignment="Right" Margin="0,-64,0,0"/>
-
-                        <TextBox x:Name="RemarksTextBox" Header="备注" PlaceholderText="例如：游戏模式、办公优化" />
-                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="PathTextBox" Header="程序路径" PlaceholderText="C:\Path\To\App.exe" Margin="0,0,8,0" />
+                        <Button Content="浏览" Click="BrowseButton_Click" Grid.Column="1" VerticalAlignment="Bottom" />
+                    </Grid>
 
                     <!-- CPU Performance -->
                     <StackPanel Spacing="12">
@@ -55,7 +57,7 @@
                             <!-- Toggles -->
                             <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Spacing="8">
                                 <CheckBox x:Name="EfficiencyModeCheck" Content="启用效率模式 (Eco Mode)" />
-                                <CheckBox x:Name="DynamicBoostCheck" Content="允许 Windows 动态线程优先级提升" IsThreeState="True" />
+                                <CheckBox x:Name="DynamicBoostCheck" Content="允许 Windows 动态线程优先级提升" IsThreeState="False" />
                             </StackPanel>
                         </Grid>
                     </StackPanel>
@@ -94,11 +96,14 @@
                     <!-- Execution Control -->
                     <StackPanel Spacing="12">
                         <TextBlock Text="执行控制" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
-                        <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="16">
                             <CheckBox x:Name="KillCheck" Content="结束进程" />
                             <CheckBox x:Name="KillTreeCheck" Content="结束进程树" />
                         </StackPanel>
                     </StackPanel>
+
+                    <!-- Remarks (Moved) -->
+                    <TextBox x:Name="RemarksTextBox" Header="备注" PlaceholderText="例如：游戏模式、办公优化" />
                 </StackPanel>
             </ScrollViewer>
 

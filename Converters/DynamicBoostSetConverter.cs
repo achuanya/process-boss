@@ -8,9 +8,10 @@ namespace ProcessBoss.Converters
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            if (value is bool)
+            if (value is bool b)
             {
-                return Visibility.Visible;
+                // Only show if disabled (false), as enabled is default
+                return !b ? Visibility.Visible : Visibility.Collapsed;
             }
             return Visibility.Collapsed;
         }

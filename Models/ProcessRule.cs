@@ -18,10 +18,9 @@ namespace ProcessBoss.Models
         public bool EnableEfficiencyMode { get; set; }
         
         // Dynamic Thread Priority Boost
-        // null = Unchanged
-        // true = Enable
+        // true = Enable (Default)
         // false = Disable
-        public bool? EnableDynamicThreadPriorityBoost { get; set; }
+        public bool EnableDynamicThreadPriorityBoost { get; set; } = true;
 
         public ProcessIoPriority IoPriority { get; set; } = ProcessIoPriority.Unchanged;
         public ProcessMemoryPriority MemoryPriority { get; set; } = ProcessMemoryPriority.Unchanged;

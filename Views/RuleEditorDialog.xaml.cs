@@ -24,6 +24,7 @@ namespace ProcessBoss.Views
 
             if (existingRule != null)
             {
+                this.Title = "规则编辑";
                 _originalIsEnabled = existingRule.IsEnabled;
                 PathTextBox.Text = existingRule.FullPath;
                 RemarksTextBox.Text = existingRule.Remarks;
@@ -37,6 +38,11 @@ namespace ProcessBoss.Views
                 SetComboSelection(IoPriorityComboBox, existingRule.IoPriority);
                 SetComboSelection(MemoryPriorityComboBox, existingRule.MemoryPriority);
                 SetComboSelection(GpuPriorityComboBox, existingRule.GpuPriority);
+            }
+            else
+            {
+                this.Title = "添加规则";
+                DynamicBoostCheck.IsChecked = true; // Default to enabled
             }
         }
 
@@ -201,7 +207,7 @@ namespace ProcessBoss.Views
                 ProcessName = System.IO.Path.GetFileName(PathTextBox.Text),
                 Remarks = RemarksTextBox.Text,
                 EnableEfficiencyMode = EfficiencyModeCheck.IsChecked ?? false,
-                EnableDynamicThreadPriorityBoost = DynamicBoostCheck.IsChecked,
+                EnableDynamicThreadPriorityBoost = DynamicBoostCheck.IsChecked ?? true,
                 KillOnStart = KillCheck.IsChecked ?? false,
                 KillTreeOnStart = KillTreeCheck.IsChecked ?? false
             };

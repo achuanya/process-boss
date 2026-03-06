@@ -93,25 +93,13 @@ namespace ProcessBoss.Services
                 catch (Exception) { /* Ignore if invalid mask for this system */ }
 
                 // 6. Dynamic Thread Priority Boost
-                if (rule.EnableDynamicThreadPriorityBoost.HasValue)
+                try
                 {
-                    try
-                    {
-                        // API expects 'DisablePriorityBoost', so true means Disabled.
-                        bool disable = !rule.EnableDynamicThreadPriorityBoost.Value;
-                        NativeMethods.SetProcessPriorityBoost(process.Handle, disable);
-                    }
-                    catch (Exception ex) { Debug.WriteLine($"Failed to set Priority Boost: {ex.Message}"); }
+                    // API expects 'DisablePriorityBoost', so true means Disabled.
+                    bool disable = !rule.EnableDynamicThreadPriorityBoost;
+                    NativeMethods.SetProcessPriorityBoost(process.Handle, disable);
                 }
-                else
-                {
-                    // Restore to Default (Enabled)
-                    try
-                    {
-                        NativeMethods.SetProcessPriorityBoost(process.Handle, false); // Disable = false => Enabled
-                    }
-                    catch { }
-                }
+                catch (Exception ex) { Debug.WriteLine($"Failed to set Priority Boost: {ex.Message}"); }
 
                 // 7. I/O Priority
                 if (rule.IoPriority != ProcessIoPriority.Unchanged)
