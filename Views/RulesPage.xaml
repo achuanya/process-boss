@@ -75,32 +75,38 @@
                                             </StackPanel.Resources>
 
                                             <!-- Priority -->
-                                            <Border Visibility="{x:Bind IsPrioritySet}">
-                                                <TextBlock Text="{x:Bind PriorityDisplay}" />
+                                            <Border Visibility="{x:Bind Priority, Converter={StaticResource PrioritySetConverter}}">
+                                                <TextBlock Text="{x:Bind Priority, Converter={StaticResource ProcessPriorityConverter}}" />
                                             </Border>
                                             <!-- Efficiency -->
-                                            <Border Visibility="{x:Bind IsEfficiencyModeSet}">
+                                            <Border Visibility="{x:Bind EnableEfficiencyMode, Converter={StaticResource BooleanToVisibilityConverter}}">
                                                 <TextBlock Text="效率模式" />
                                             </Border>
                                             <!-- Affinity -->
-                                            <Border Visibility="{x:Bind IsAffinitySet}">
-                                                <TextBlock Text="{x:Bind CpuAffinityDisplay}" />
+                                            <Border Visibility="{x:Bind CpuAffinityMask, Converter={StaticResource CpuAffinitySetConverter}}">
+                                                <TextBlock Text="{x:Bind CpuAffinityMask, Converter={StaticResource CpuAffinityConverter}}" />
                                             </Border>
                                             <!-- Dynamic Boost -->
-                                            <Border Visibility="{x:Bind IsDynamicBoostSet}">
-                                                <TextBlock Text="{x:Bind DynamicBoostDisplay}" />
+                                            <Border Visibility="{x:Bind EnableDynamicThreadPriorityBoost, Converter={StaticResource DynamicBoostSetConverter}}">
+                                                <TextBlock Text="{x:Bind EnableDynamicThreadPriorityBoost, Converter={StaticResource DynamicBoostConverter}}" />
                                             </Border>
                                             <!-- IO -->
-                                            <Border Visibility="{x:Bind IsIoPrioritySet}">
-                                                <TextBlock Text="{x:Bind IoPriorityDisplay, Mode=OneWay, Converter={StaticResource PrefixConverter}, ConverterParameter='I/O: '}" />
+                                            <Border Visibility="{x:Bind IoPriority, Converter={StaticResource IoPrioritySetConverter}}">
+                                                <TextBlock>
+                                                    <Run Text="I/O: " /><Run Text="{x:Bind IoPriority, Converter={StaticResource IoPriorityConverter}}" />
+                                                </TextBlock>
                                             </Border>
                                             <!-- Memory -->
-                                            <Border Visibility="{x:Bind IsMemoryPrioritySet}">
-                                                <TextBlock Text="{x:Bind MemoryPriorityDisplay, Mode=OneWay, Converter={StaticResource PrefixConverter}, ConverterParameter='内存: '}" />
+                                            <Border Visibility="{x:Bind MemoryPriority, Converter={StaticResource MemoryPrioritySetConverter}}">
+                                                <TextBlock>
+                                                    <Run Text="内存: " /><Run Text="{x:Bind MemoryPriority, Converter={StaticResource MemoryPriorityConverter}}" />
+                                                </TextBlock>
                                             </Border>
                                             <!-- GPU -->
-                                            <Border Visibility="{x:Bind IsGpuPrioritySet}">
-                                                <TextBlock Text="{x:Bind GpuPriorityDisplay, Mode=OneWay, Converter={StaticResource PrefixConverter}, ConverterParameter='GPU: '}" />
+                                            <Border Visibility="{x:Bind GpuPriority, Converter={StaticResource GpuPrioritySetConverter}}">
+                                                <TextBlock>
+                                                    <Run Text="GPU: " /><Run Text="{x:Bind GpuPriority, Converter={StaticResource GpuPriorityConverter}}" />
+                                                </TextBlock>
                                             </Border>
                                             
                                             <!-- Kill (Red) -->

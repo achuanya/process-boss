@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using ProcessBoss.Models;
+using ProcessBoss.Helpers;
 
 namespace ProcessBoss.Services
 {
@@ -17,11 +18,6 @@ namespace ProcessBoss.Services
         private bool _isRunning;
         private readonly HashSet<int> _managedProcessIds = new HashSet<int>();
 
-        // Use a timer as a fallback or complementary check, 
-        // because WMI events might be missed or slow, 
-        // but for "Instant" reaction, WMI is usually better if it works.
-        // However, WMI Win32_ProcessStartTrace requires admin rights often.
-        // Let's stick to WMI first, and maybe a slow poll loop for reliability.
         private CancellationTokenSource? _cts;
 
         public MonitorService(ConfigService configService)
@@ -36,7 +32,6 @@ namespace ProcessBoss.Services
 
         private void OnRuleRemoved(ProcessRule rule)
         {
-            // When a rule is removed, we should restore defaults to those processes
             RestoreRuleDefaults(rule);
         }
 
@@ -52,20 +47,9 @@ namespace ProcessBoss.Services
                     {
                         try
                         {
-                            // Check path if possible, but don't fail if Access Denied
-                            if (!string.IsNullOrEmpty(rule.FullPath))
+                            if (!ProcessMatcher.IsMatch(p, rule))
                             {
-                                string? processPath = null;
-                                try
-                                {
-                                    processPath = p.MainModule?.FileName;
-                                }
-                                catch { /* Ignore access denied, assume match by name */ }
-
-                                if (processPath != null && !processPath.Equals(rule.FullPath, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    continue;
-                                }
+                                continue;
                             }
                             _optimizer.RestoreDefaults(p);
                             lock (_managedProcessIds)
@@ -90,7 +74,6 @@ namespace ProcessBoss.Services
                 }
                 else
                 {
-                    // Rule disabled -> restore defaults
                     RestoreRuleDefaults(rule);
                 }
             }
@@ -108,20 +91,9 @@ namespace ProcessBoss.Services
                     {
                         try
                         {
-                            // Check path if possible, but don't fail if Access Denied
-                            if (!string.IsNullOrEmpty(rule.FullPath))
+                            if (!ProcessMatcher.IsMatch(p, rule))
                             {
-                                string? processPath = null;
-                                try
-                                {
-                                    processPath = p.MainModule?.FileName;
-                                }
-                                catch { /* Ignore access denied, assume match by name */ }
-
-                                if (processPath != null && !processPath.Equals(rule.FullPath, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    continue;
-                                }
+                                continue;
                             }
 
                             _optimizer.ApplyRule(p, rule);
@@ -146,8 +118,6 @@ namespace ProcessBoss.Services
 
             try
             {
-                // WMI approach
-                // Win32_ProcessStartTrace is efficient
                 var query = new WqlEventQuery("SELECT * FROM Win32_ProcessStartTrace");
                 _startWatcher = new ManagementEventWatcher(query);
                 _startWatcher.EventArrived += OnProcessStarted;
@@ -156,7 +126,6 @@ namespace ProcessBoss.Services
             catch (Exception ex)
             {
                 Debug.WriteLine($"WMI Monitor failed to start: {ex.Message}. Falling back to polling.");
-                // Fallback to polling if WMI fails (e.g. permission issues)
                 StartPolling();
             }
         }
@@ -178,13 +147,11 @@ namespace ProcessBoss.Services
                         {
                             if (!knownIds.Contains(p.Id))
                             {
-                                // New process
                                 CheckAndApply(p);
                                 knownIds.Add(p.Id);
                             }
                         }
                         
-                        // Cleanup dead IDs
                         knownIds.IntersectWith(currentIds);
                     }
                     catch { }
@@ -204,7 +171,6 @@ namespace ProcessBoss.Services
                 string processName = processNameObj.ToString() ?? "";
                 int processId = Convert.ToInt32(e.NewEvent.Properties["ProcessID"].Value);
 
-                // ProcessName in WMI usually includes extension (e.g. "notepad.exe")
                 var matchedRule = _configService.Rules.FirstOrDefault(r => 
                     r.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase));
 
@@ -214,20 +180,9 @@ namespace ProcessBoss.Services
                     {
                         var process = Process.GetProcessById(processId);
                         
-                        // Check path if possible
-                        if (!string.IsNullOrEmpty(matchedRule.FullPath))
+                        if (!ProcessMatcher.IsMatch(process, matchedRule))
                         {
-                            string? processPath = null;
-                            try 
-                            {
-                                processPath = process.MainModule?.FileName;
-                            }
-                            catch { /* access denied */ }
-
-                            if (processPath != null && !processPath.Equals(matchedRule.FullPath, StringComparison.OrdinalIgnoreCase))
-                            {
-                                return; 
-                            }
+                            return;
                         }
 
                         _optimizer.ApplyRule(process, matchedRule);
@@ -249,7 +204,6 @@ namespace ProcessBoss.Services
         {
             try
             {
-                // Process.ProcessName does NOT include extension
                 string pName = p.ProcessName + ".exe";
                 
                 var matchedRule = _configService.Rules.FirstOrDefault(r => 
@@ -258,20 +212,9 @@ namespace ProcessBoss.Services
 
                 if (matchedRule != null && matchedRule.IsEnabled)
                 {
-                     // Check path if possible
-                     if (!string.IsNullOrEmpty(matchedRule.FullPath))
+                     if (!ProcessMatcher.IsMatch(p, matchedRule))
                      {
-                         string? processPath = null;
-                         try
-                         {
-                             processPath = p.MainModule?.FileName;
-                         }
-                         catch { /* Access denied */ }
-
-                         if (processPath != null && !processPath.Equals(matchedRule.FullPath, StringComparison.OrdinalIgnoreCase))
-                         {
-                             return;
-                         }
+                         return;
                      }
                      _optimizer.ApplyRule(p, matchedRule);
                      lock (_managedProcessIds)
@@ -293,7 +236,6 @@ namespace ProcessBoss.Services
             _cts?.Cancel();
             _cts = null;
 
-            // Restore defaults for all managed processes
             RestoreAllDefaults();
         }
 
@@ -313,7 +255,7 @@ namespace ProcessBoss.Services
                     var p = Process.GetProcessById(pid);
                     _optimizer.RestoreDefaults(p);
                 }
-                catch { /* Process likely exited */ }
+                catch { }
             }
         }
 

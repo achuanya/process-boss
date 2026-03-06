@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:ProcessBoss"
+    xmlns:converters="using:ProcessBoss.Converters"
     RequestedTheme="Light">
     <Application.Resources>
         <ResourceDictionary>
@@ -32,8 +33,22 @@
             <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FF9F0A" />
             <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#FF9F0A" />
             
-            <local:StringVisibilityConverter x:Key="StringVisibilityConverter" />
-            <local:PrefixConverter x:Key="PrefixConverter" />
+            <converters:StringVisibilityConverter x:Key="StringVisibilityConverter" />
+            <converters:PrefixConverter x:Key="PrefixConverter" />
+            <converters:ProcessPriorityConverter x:Key="ProcessPriorityConverter" />
+            <converters:IoPriorityConverter x:Key="IoPriorityConverter" />
+            <converters:MemoryPriorityConverter x:Key="MemoryPriorityConverter" />
+            <converters:GpuPriorityConverter x:Key="GpuPriorityConverter" />
+            <converters:CpuAffinityConverter x:Key="CpuAffinityConverter" />
+            <converters:DynamicBoostConverter x:Key="DynamicBoostConverter" />
+            <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            
+            <converters:PrioritySetConverter x:Key="PrioritySetConverter" />
+            <converters:IoPrioritySetConverter x:Key="IoPrioritySetConverter" />
+            <converters:MemoryPrioritySetConverter x:Key="MemoryPrioritySetConverter" />
+            <converters:GpuPrioritySetConverter x:Key="GpuPrioritySetConverter" />
+            <converters:CpuAffinitySetConverter x:Key="CpuAffinitySetConverter" />
+            <converters:DynamicBoostSetConverter x:Key="DynamicBoostSetConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -1,47 +1,13 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using ProcessBoss.Interop;
 using ProcessBoss.Models;
 
 namespace ProcessBoss.Services
 {
     public class ProcessOptimizer
     {
-        // P/Invoke for Efficiency Mode
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern bool SetProcessInformation(IntPtr hProcess, int ProcessInformationClass, ref PROCESS_POWER_THROTTLING_STATE ProcessInformation, uint ProcessInformationSize);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern bool SetProcessPriorityBoost(IntPtr hProcess, bool DisablePriorityBoost);
-
-        [DllImport("ntdll.dll", SetLastError = true)]
-        private static extern int NtSetInformationProcess(IntPtr ProcessHandle, int ProcessInformationClass, IntPtr ProcessInformation, int ProcessInformationLength);
-
-        [DllImport("gdi32.dll", SetLastError = true)]
-        private static extern int D3DKMTSetProcessSchedulingPriorityClass(IntPtr hProcess, int Priority);
-
-        private const int ProcessPowerThrottling = 4;
-        private const int ProcessIoPriorityInfoClass = 33;
-        private const int ProcessMemoryPriorityInfoClass = 39;
-
-        private const uint PROCESS_POWER_THROTTLING_CURRENT_VERSION = 1;
-        private const uint PROCESS_POWER_THROTTLING_EXECUTION_SPEED = 1;
-        private const uint PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION = 2; 
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct PROCESS_POWER_THROTTLING_STATE
-        {
-            public uint Version;
-            public uint ControlMask;
-            public uint StateMask;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct MEMORY_PRIORITY_INFORMATION
-        {
-            public uint MemoryPriority;
-        }
-
         public void ApplyRule(Process process, ProcessRule rule)
         {
             try
@@ -133,7 +99,7 @@ namespace ProcessBoss.Services
                     {
                         // API expects 'DisablePriorityBoost', so true means Disabled.
                         bool disable = !rule.EnableDynamicThreadPriorityBoost.Value;
-                        SetProcessPriorityBoost(process.Handle, disable);
+                        NativeMethods.SetProcessPriorityBoost(process.Handle, disable);
                     }
                     catch (Exception ex) { Debug.WriteLine($"Failed to set Priority Boost: {ex.Message}"); }
                 }
@@ -142,7 +108,7 @@ namespace ProcessBoss.Services
                     // Restore to Default (Enabled)
                     try
                     {
-                        SetProcessPriorityBoost(process.Handle, false); // Disable = false => Enabled
+                        NativeMethods.SetProcessPriorityBoost(process.Handle, false); // Disable = false => Enabled
                     }
                     catch { }
                 }
@@ -208,7 +174,7 @@ namespace ProcessBoss.Services
                 catch { }
 
                 // 4. Boost -> Enabled
-                try { SetProcessPriorityBoost(process.Handle, false); } catch { }
+                try { NativeMethods.SetProcessPriorityBoost(process.Handle, false); } catch { }
 
                 // 5. I/O -> Normal
                 SetIoPriority(process.Handle, ProcessIoPriority.Normal);
@@ -227,15 +193,15 @@ namespace ProcessBoss.Services
 
         private void SetEfficiencyMode(IntPtr hProcess, bool enable)
         {
-            var throttlingState = new PROCESS_POWER_THROTTLING_STATE
+            var throttlingState = new NativeMethods.PROCESS_POWER_THROTTLING_STATE
             {
-                Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION,
-                ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED,
-                StateMask = enable ? PROCESS_POWER_THROTTLING_EXECUTION_SPEED : 0
+                Version = NativeMethods.PROCESS_POWER_THROTTLING_CURRENT_VERSION,
+                ControlMask = NativeMethods.PROCESS_POWER_THROTTLING_EXECUTION_SPEED,
+                StateMask = enable ? NativeMethods.PROCESS_POWER_THROTTLING_EXECUTION_SPEED : 0
             };
 
-            uint size = (uint)Marshal.SizeOf<PROCESS_POWER_THROTTLING_STATE>();
-            SetProcessInformation(hProcess, ProcessPowerThrottling, ref throttlingState, size);
+            uint size = (uint)Marshal.SizeOf<NativeMethods.PROCESS_POWER_THROTTLING_STATE>();
+            NativeMethods.SetProcessInformation(hProcess, NativeMethods.ProcessPowerThrottling, ref throttlingState, size);
         }
 
         private void SetIoPriority(IntPtr hProcess, ProcessIoPriority priority)
@@ -247,7 +213,7 @@ namespace ProcessBoss.Services
                 Marshal.WriteInt32(ptr, ioPriority);
                 try
                 {
-                    NtSetInformationProcess(hProcess, ProcessIoPriorityInfoClass, ptr, sizeof(int));
+                    NativeMethods.NtSetInformationProcess(hProcess, NativeMethods.ProcessIoPriorityInfoClass, ptr, sizeof(int));
                 }
                 finally
                 {
@@ -261,13 +227,13 @@ namespace ProcessBoss.Services
         {
             try
             {
-                var info = new MEMORY_PRIORITY_INFORMATION { MemoryPriority = (uint)priority };
+                var info = new NativeMethods.MEMORY_PRIORITY_INFORMATION { MemoryPriority = (uint)priority };
                 int size = Marshal.SizeOf(info);
                 IntPtr ptr = Marshal.AllocHGlobal(size);
                 Marshal.StructureToPtr(info, ptr, false);
                 try
                 {
-                    NtSetInformationProcess(hProcess, ProcessMemoryPriorityInfoClass, ptr, size);
+                    NativeMethods.NtSetInformationProcess(hProcess, NativeMethods.ProcessMemoryPriorityInfoClass, ptr, size);
                 }
                 finally
                 {
@@ -281,7 +247,7 @@ namespace ProcessBoss.Services
         {
             try
             {
-                D3DKMTSetProcessSchedulingPriorityClass(hProcess, (int)priority);
+                NativeMethods.D3DKMTSetProcessSchedulingPriorityClass(hProcess, (int)priority);
             }
             catch (Exception ex) { Debug.WriteLine($"Failed to set GPU Priority: {ex.Message}"); }
         }
