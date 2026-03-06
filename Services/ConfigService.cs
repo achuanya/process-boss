@@ -11,6 +11,10 @@ namespace ProcessBoss.Services
         private const string ConfigFileName = "rules.json";
         private readonly string _configPath;
 
+        public event Action<ProcessRule>? RuleAdded;
+        public event Action<ProcessRule>? RuleRemoved;
+        public event Action<ProcessRule>? RuleUpdated;
+
         public List<ProcessRule> Rules { get; private set; } = new List<ProcessRule>();
 
         public ConfigService()
@@ -57,12 +61,14 @@ namespace ProcessBoss.Services
         {
             Rules.Add(rule);
             SaveRules();
+            RuleAdded?.Invoke(rule);
         }
 
         public void RemoveRule(ProcessRule rule)
         {
             Rules.Remove(rule);
             SaveRules();
+            RuleRemoved?.Invoke(rule);
         }
         
         public void UpdateRule(ProcessRule oldRule, ProcessRule newRule)
@@ -72,6 +78,7 @@ namespace ProcessBoss.Services
             {
                 Rules[index] = newRule;
                 SaveRules();
+                RuleUpdated?.Invoke(newRule);
             }
         }
     }

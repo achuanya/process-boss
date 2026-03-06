@@ -27,6 +27,46 @@ namespace ProcessBoss.Services
         {
             _configService = configService;
             _optimizer = new ProcessOptimizer();
+
+            _configService.RuleAdded += OnRuleChanged;
+            _configService.RuleUpdated += OnRuleChanged;
+        }
+
+        private void OnRuleChanged(ProcessRule rule)
+        {
+            if (_isRunning)
+            {
+                ApplyRuleToRunningProcesses(rule);
+            }
+        }
+
+        private void ApplyRuleToRunningProcesses(ProcessRule rule)
+        {
+            Task.Run(() =>
+            {
+                try
+                {
+                    string pNameNoExt = System.IO.Path.GetFileNameWithoutExtension(rule.ProcessName);
+                    var processes = Process.GetProcessesByName(pNameNoExt);
+                    foreach (var p in processes)
+                    {
+                        try
+                        {
+                            if (!string.IsNullOrEmpty(rule.FullPath))
+                            {
+                                if (p.MainModule?.FileName != null &&
+                                    !p.MainModule.FileName.Equals(rule.FullPath, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    continue;
+                                }
+                            }
+                            _optimizer.ApplyRule(p, rule);
+                        }
+                        catch { }
+                    }
+                }
+                catch { }
+            });
         }
 
         public bool IsRunning => _isRunning;
@@ -173,6 +213,8 @@ namespace ProcessBoss.Services
         public void Dispose()
         {
             Stop();
+            _configService.RuleAdded -= OnRuleChanged;
+            _configService.RuleUpdated -= OnRuleChanged;
         }
     }
 }
