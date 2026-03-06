@@ -1,9 +1,9 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using SKM.Models;
+using ProcessBoss.Models;
 
-namespace SKM.Services
+namespace ProcessBoss.Services
 {
     public class ProcessOptimizer
     {

@@ -5,9 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using SKM.Models;
+using ProcessBoss.Models;
 
-namespace SKM.Services
+namespace ProcessBoss.Services
 {
     public class MonitorService : IDisposable
     {

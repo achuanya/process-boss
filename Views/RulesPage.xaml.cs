@@ -1,12 +1,12 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using SKM.Models;
-using SKM.Services;
+using ProcessBoss.Models;
+using ProcessBoss.Services;
 using System;
 using System.Collections.ObjectModel;
 
-namespace SKM.Views
+namespace ProcessBoss.Views
 {
     public sealed partial class RulesPage : Page
     {

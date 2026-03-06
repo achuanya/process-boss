@@ -1,14 +1,14 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using SKM.Models;
-using SKM.Services;
+using ProcessBoss.Models;
+using ProcessBoss.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SKM.Views
+namespace ProcessBoss.Views
 {
     public sealed partial class ProcessesPage : Page
     {

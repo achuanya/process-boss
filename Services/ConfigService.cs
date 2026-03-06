@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using SKM.Models;
+using ProcessBoss.Models;
 
-namespace SKM.Services
+namespace ProcessBoss.Services
 {
     public class ConfigService
     {
@@ -16,7 +16,7 @@ namespace SKM.Services
         public ConfigService()
         {
             string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            string appFolder = Path.Combine(appDataPath, "SKM");
+            string appFolder = Path.Combine(appDataPath, "ProcessBoss");
             Directory.CreateDirectory(appFolder);
             _configPath = Path.Combine(appFolder, ConfigFileName);
             LoadRules();

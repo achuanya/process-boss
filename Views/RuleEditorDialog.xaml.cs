@@ -1,12 +1,12 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using SKM.Models;
+using ProcessBoss.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Windows.Storage.Pickers;
 
-namespace SKM.Views
+namespace ProcessBoss.Views
 {
     public class ComboItem<T>
     {

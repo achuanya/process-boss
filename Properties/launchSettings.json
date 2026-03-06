@@ -1,9 +1,9 @@
 {
   "profiles": {
-    "SKM (Package)": {
+    "ProcessBoss (Package)": {
       "commandName": "MsixPackage"
     },
-    "SKM (Unpackaged)": {
+    "ProcessBoss (Unpackaged)": {
       "commandName": "Project"
     }
   }
