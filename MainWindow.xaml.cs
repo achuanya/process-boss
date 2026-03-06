@@ -2,6 +2,7 @@ using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Animation;
 using SKM.Models;
 using SKM.Services;
 using SKM.Views;
@@ -13,9 +14,9 @@ namespace SKM
 {
     public sealed partial class MainWindow : Window
     {
-        public ObservableCollection<ProcessRule> Rules { get; } = new ObservableCollection<ProcessRule>();
         private readonly ConfigService _configService;
         private readonly MonitorService _monitorService;
+        private AppWindow _appWindow;
 
         public MainWindow()
         {
@@ -24,7 +25,18 @@ namespace SKM
             _monitorService = new MonitorService(_configService);
 
             InitializeWindow();
-            LoadRules();
+            
+            // Default selection
+            NavView.SelectedItem = NavView.MenuItems[0];
+            // Manually trigger navigation because setting SelectedItem doesn't fire SelectionChanged automatically
+            if (NavView.SelectedItem is NavigationViewItem)
+            {
+                 ContentFrame.Navigate(typeof(RulesPage));
+                 if (ContentFrame.Content is RulesPage rulesPage)
+                 {
+                     rulesPage.Initialize(_configService, _monitorService);
+                 }
+            }
         }
 
         private void InitializeWindow()
@@ -32,92 +44,144 @@ namespace SKM
             // Get AppWindow
             IntPtr hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
             WindowId wndId = Win32Interop.GetWindowIdFromWindow(hWnd);
-            AppWindow appWindow = AppWindow.GetFromWindowId(wndId);
+            _appWindow = AppWindow.GetFromWindowId(wndId);
 
-            if (appWindow != null)
+            if (_appWindow != null)
             {
                 // Resize to 1350x900
-                appWindow.Resize(new SizeInt32(1350, 900));
+                _appWindow.Resize(new SizeInt32(1350, 900));
 
                 // Disable Resizing and Maximizing
-                if (appWindow.Presenter is OverlappedPresenter presenter)
+                if (_appWindow.Presenter is OverlappedPresenter presenter)
                 {
                     presenter.IsResizable = true;
                     presenter.IsMaximizable = true;
+                    
+                    // Hide system title bar to use custom buttons
+                    try 
+                    {
+                        presenter.SetBorderAndTitleBar(true, false);
+                    }
+                    catch { /* Fallback for older versions if needed */ }
                 }
+
+                _appWindow.Changed += AppWindow_Changed;
             }
 
             // Extend content into title bar
             this.ExtendsContentIntoTitleBar = true;
-            this.SetTitleBar(AppTitleBar); // We will add a Grid named AppTitleBar in XAML
+            this.SetTitleBar(AppTitleBar); 
         }
 
-        private void LoadRules()
+        private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
         {
-            Rules.Clear();
-            foreach (var rule in _configService.Rules)
-            {
-                Rules.Add(rule);
-            }
+            // Update icon on any relevant change (size or presenter state)
+            UpdateMaximizeButtonIcon();
         }
 
-        private async void AddButton_Click(object sender, RoutedEventArgs e)
+        private void UpdateMaximizeButtonIcon()
         {
-            var dialog = new RuleEditorDialog();
-            dialog.XamlRoot = this.Content.XamlRoot;
-            var result = await dialog.ShowAsync();
-
-            if (dialog.Result != null)
+            if (_appWindow.Presenter is OverlappedPresenter p)
             {
-                var newRule = dialog.Result;
-                _configService.AddRule(newRule);
-                Rules.Add(newRule);
-            }
-        }
-
-        private async void EditButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.Tag is ProcessRule rule)
-            {
-                var dialog = new RuleEditorDialog(rule);
-                dialog.XamlRoot = this.Content.XamlRoot;
-                var result = await dialog.ShowAsync();
-
-                if (dialog.Result != null)
+                if (MaximizeButton.Content is FontIcon icon)
                 {
-                    var updatedRule = dialog.Result;
-                    _configService.UpdateRule(rule, updatedRule);
-                    
-                    int index = Rules.IndexOf(rule);
-                    if (index != -1)
+                    if (p.State == OverlappedPresenterState.Maximized)
                     {
-                        Rules[index] = updatedRule;
+                        icon.Glyph = "\uE923"; // ChromeRestore
+                    }
+                    else
+                    {
+                        icon.Glyph = "\uE922"; // ChromeMaximize
                     }
                 }
             }
         }
 
-        private void DeleteButton_Click(object sender, RoutedEventArgs e)
+        private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
-            if (sender is Button btn && btn.Tag is ProcessRule rule)
+            if (args.IsSettingsSelected)
             {
-                _configService.RemoveRule(rule);
-                Rules.Remove(rule);
+                // Settings Page
+            }
+            else if (args.SelectedItem is NavigationViewItem item)
+            {
+                string tag = item.Tag?.ToString();
+                switch (tag)
+                {
+                    case "Rules":
+                        ContentFrame.Navigate(typeof(RulesPage));
+                        if (ContentFrame.Content is RulesPage rulesPage)
+                        {
+                            rulesPage.Initialize(_configService, _monitorService);
+                        }
+                        break;
+                    case "Processes":
+                        ContentFrame.Navigate(typeof(ProcessesPage));
+                        if (ContentFrame.Content is ProcessesPage procPage)
+                        {
+                            procPage.Initialize(_configService, _monitorService);
+                        }
+                        break;
+                }
             }
         }
 
-        private void MonitorSwitch_Toggled(object sender, RoutedEventArgs e)
+        private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
-            if (MonitorSwitch.IsOn)
+            if (args.InvokedItemContainer?.Tag?.ToString() == "ToggleMonitor")
             {
-                _monitorService.Start();
-                StatusTextBlock.Text = "监控中...";
+                ToggleMonitor();
+            }
+        }
+
+        private void ToggleMonitor()
+        {
+            if (_monitorService.IsRunning)
+            {
+                _monitorService.Stop();
+                
+                MonitorText.Text = "开始调教";
+                MonitorPlayIcon.Visibility = Visibility.Visible;
+                MonitorRunningIcon.Visibility = Visibility.Collapsed;
+                MonitorBallAnimation.Stop();
             }
             else
             {
-                _monitorService.Stop();
-                StatusTextBlock.Text = "已停止监控";
+                _monitorService.Start();
+                
+                MonitorText.Text = "停止调教";
+                MonitorPlayIcon.Visibility = Visibility.Collapsed;
+                MonitorRunningIcon.Visibility = Visibility.Visible;
+                MonitorBallAnimation.Begin();
             }
+        }
+
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_appWindow.Presenter is OverlappedPresenter p)
+            {
+                p.Minimize();
+            }
+        }
+
+        private void MaximizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_appWindow.Presenter is OverlappedPresenter p)
+            {
+                if (p.State == OverlappedPresenterState.Maximized)
+                {
+                    p.Restore();
+                }
+                else
+                {
+                    p.Maximize();
+                }
+            }
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
     }
 }

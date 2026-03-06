@@ -29,6 +29,8 @@ namespace SKM.Services
             _optimizer = new ProcessOptimizer();
         }
 
+        public bool IsRunning => _isRunning;
+
         public void Start()
         {
             if (_isRunning) return;

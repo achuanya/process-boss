@@ -10,106 +10,99 @@
     Title="SKM - 进程监控">
 
     <Grid Background="{StaticResource AppBackgroundBrush}">
-        <!-- Custom Title Bar (Drag Region) -->
-        <Grid x:Name="AppTitleBar" Height="24" VerticalAlignment="Top" Background="Transparent" Canvas.ZIndex="100">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" /> <!-- Caption Buttons Placeholder -->
-            </Grid.ColumnDefinitions>
-        </Grid>
+        <Grid.Resources>
+            <Storyboard x:Name="MonitorBallAnimation" RepeatBehavior="Forever" AutoReverse="True">
+                <DoubleAnimation Storyboard.TargetName="MonitorBallScale" Storyboard.TargetProperty="ScaleX" From="0.8" To="1.2" Duration="0:0:0.8" />
+                <DoubleAnimation Storyboard.TargetName="MonitorBallScale" Storyboard.TargetProperty="ScaleY" From="0.8" To="1.2" Duration="0:0:0.8" />
+            </Storyboard>
+        </Grid.Resources>
+        <!-- Drag Region (Title Bar) -->
+        <Grid x:Name="AppTitleBar" Height="48" VerticalAlignment="Top" Background="Transparent" Canvas.ZIndex="0" />
+
+        <!-- Custom Caption Buttons & Switch -->
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,8,0" VerticalAlignment="Top" HorizontalAlignment="Right" Height="48" Canvas.ZIndex="2">
+                <!-- Window Buttons -->
+                <StackPanel Orientation="Horizontal" Spacing="0">
+                    <Button x:Name="MinimizeButton" Click="MinimizeButton_Click" Width="46" Height="32" Background="Transparent" BorderThickness="0" Padding="0" VerticalAlignment="Center" CornerRadius="4">
+                    <FontIcon Glyph="&#xE921;" FontSize="10" />
+                    <Button.Resources>
+                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#19FF9F0A" />
+                        <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#FF9F0A" />
+                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#33FF9F0A" />
+                        <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#CC7F08" />
+                    </Button.Resources>
+                </Button>
+                <Button x:Name="MaximizeButton" Click="MaximizeButton_Click" Width="46" Height="32" Background="Transparent" BorderThickness="0" Padding="0" VerticalAlignment="Center" CornerRadius="4">
+                    <FontIcon Glyph="&#xE922;" FontSize="10" />
+                    <Button.Resources>
+                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#19FF9F0A" />
+                        <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#FF9F0A" />
+                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#33FF9F0A" />
+                        <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#CC7F08" />
+                    </Button.Resources>
+                </Button>
+                <Button x:Name="CloseButton" Click="CloseButton_Click" Width="46" Height="32" Background="Transparent" BorderThickness="0" Padding="0" VerticalAlignment="Center" CornerRadius="4">
+                    <FontIcon Glyph="&#xE8BB;" FontSize="10" />
+                    <Button.Resources>
+                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#E81123" />
+                        <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="White" />
+                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#CC0D1A" />
+                        <SolidColorBrush x:Key="ButtonForegroundPressed" Color="White" />
+                    </Button.Resources>
+                </Button>
+            </StackPanel>
+        </StackPanel>
 
         <!-- Main Content -->
-        <ScrollViewer Padding="0,0,0,24" Canvas.ZIndex="0">
-            <Grid Margin="24,24,24,0" HorizontalAlignment="Stretch">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/> <!-- Switch -->
-                    <RowDefinition Height="Auto"/> <!-- Rules Header -->
-                    <RowDefinition Height="*"/>    <!-- Rules List -->
-                    <RowDefinition Height="Auto"/> <!-- Status -->
-                </Grid.RowDefinitions>
-
-                <!-- Monitor Switch -->
-                <Grid Grid.Row="0" Margin="0,0,0,24">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    
-                    <StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
-                            <TextBlock Text="启用监控服务" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,0,2" />
-                            <ToggleSwitch x:Name="MonitorSwitch" OnContent="" OffContent="" Toggled="MonitorSwitch_Toggled" MinWidth="0" Margin="0,0,0,0" VerticalAlignment="Center" />
-                        </StackPanel>
-                        <TextBlock Text="当程序启动时自动应用规则" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" Margin="0,4,0,0" />
-                    </StackPanel>
-                </Grid>
-
-                <!-- Rules Header -->
-                <Grid Grid.Row="1" Margin="0,0,0,4">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="规则列表" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,0,2" />
-                    <Button Grid.Column="1" Click="AddButton_Click" Background="{StaticResource AccentBrush}" Foreground="White" BorderThickness="0" CornerRadius="6" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE710;" FontSize="14" />
-                            <TextBlock Text="添加规则" />
-                        </StackPanel>
-                    </Button>
-                </Grid>
-
-                <!-- Rules List -->
-                <ListView Grid.Row="2" x:Name="RulesListView" ItemsSource="{x:Bind Rules}" SelectionMode="None">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                            <Setter Property="Padding" Value="0" />
-                            <Setter Property="Margin" Value="0,0,0,12" />
-                            <Setter Property="MinHeight" Value="0" />
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="models:ProcessRule">
-                            <Border CornerRadius="12" BorderThickness="1" Padding="16"
-                                    Background="{StaticResource CardBackgroundBrush}"
-                                    BorderBrush="{StaticResource CardBorderBrush}">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    
-                                    <StackPanel Spacing="4">
-                                        <TextBlock Text="{x:Bind ProcessName}" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
-                                        <TextBlock Text="{x:Bind FullPath}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" TextTrimming="CharacterEllipsis" MaxLines="1" />
-                                        
-                                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-                                            <Border Background="#F2F2F7" CornerRadius="6" Padding="8,4">
-                                                <TextBlock Text="{x:Bind Priority}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
-                                            </Border>
-                                            <Border Background="#F2F2F7" CornerRadius="6" Padding="8,4" Visibility="{x:Bind EnableEfficiencyMode}">
-                                                <TextBlock Text="效率模式" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
-                                            </Border>
-                                             <Border Background="#FFF2F2" CornerRadius="6" Padding="8,4" Visibility="{x:Bind KillOnStart}">
-                                                <TextBlock Text="自动结束" FontSize="11" Foreground="#FF3B30"/>
-                                            </Border>
-                                        </StackPanel>
-                                    </StackPanel>
-
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Button Content="编辑" Click="EditButton_Click" Tag="{x:Bind}" Background="Transparent" BorderThickness="0" Foreground="{StaticResource AccentBrush}" />
-                                        <Button Content="删除" Click="DeleteButton_Click" Tag="{x:Bind}" Background="Transparent" BorderThickness="0" Foreground="#FF3B30" />
-                                    </StackPanel>
+        <NavigationView x:Name="NavView" 
+                        PaneDisplayMode="Top" 
+                        IsSettingsVisible="False"
+                        IsBackButtonVisible="Collapsed"
+                        SelectionChanged="NavView_SelectionChanged"
+                        ItemInvoked="NavView_ItemInvoked"
+                        Canvas.ZIndex="1"
+                        Margin="0,0,0,0">
+            <NavigationView.MenuItems>
+                <NavigationViewItem Content="规则列表" Tag="Rules">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8F2;" FontSize="14"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="系统进程" Tag="Processes">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE71D;" FontSize="14"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItemSeparator />
+                <NavigationViewItem x:Name="MonitorToggleItem" Tag="ToggleMonitor" SelectsOnInvoked="False">
+                    <NavigationViewItem.Content>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <!-- Icon Container -->
+                            <Grid Width="14" Height="14" VerticalAlignment="Center">
+                                <!-- Play Icon (Visible when stopped) -->
+                                <FontIcon x:Name="MonitorPlayIcon" Glyph="&#xE768;" FontSize="14" Visibility="Visible" />
+                                
+                                <!-- Animated Ball (Visible when running) -->
+                                <Grid x:Name="MonitorRunningIcon" Visibility="Collapsed">
+                                    <Ellipse Width="10" Height="10" Fill="{StaticResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                        <Ellipse.RenderTransform>
+                                            <ScaleTransform x:Name="MonitorBallScale" ScaleX="1" ScaleY="1" />
+                                        </Ellipse.RenderTransform>
+                                    </Ellipse>
                                 </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                            </Grid>
+                            
+                            <!-- Text -->
+                            <TextBlock x:Name="MonitorText" Text="开始调教" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </NavigationViewItem.Content>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
 
-                <TextBlock Grid.Row="3" x:Name="StatusTextBlock" Text="就绪" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" HorizontalAlignment="Center" Margin="0,20" />
-            </Grid>
-        </ScrollViewer>
+            <NavigationView.PaneFooter>
+            </NavigationView.PaneFooter>
+
+            <Frame x:Name="ContentFrame" />
+        </NavigationView>
     </Grid>
 </Window>
