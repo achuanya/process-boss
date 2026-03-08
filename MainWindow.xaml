@@ -9,7 +9,7 @@
     mc:Ignorable="d"
     Title="调了么 - Process Boss">
 
-    <Grid Background="{StaticResource AppBackgroundBrush}">
+    <Grid Background="{ThemeResource AppBackground}">
         <Grid.Resources>
             <Storyboard x:Name="MonitorBallAnimation" RepeatBehavior="Forever" AutoReverse="True">
                 <DoubleAnimation Storyboard.TargetName="MonitorBallScale" Storyboard.TargetProperty="ScaleX" From="0.8" To="1.2" Duration="0:0:0.8" />
@@ -26,28 +26,28 @@
                     <Button x:Name="MinimizeButton" Click="MinimizeButton_Click" Width="46" Height="32" Background="Transparent" BorderThickness="0" Padding="0" VerticalAlignment="Center" CornerRadius="4">
                     <FontIcon Glyph="&#xE921;" FontSize="10" />
                     <Button.Resources>
-                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#19FF9F0A" />
-                        <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#FF9F0A" />
-                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#33FF9F0A" />
-                        <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#CC7F08" />
+                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource ButtonBackgroundHoverColor}" />
+                        <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="{ThemeResource ButtonForegroundHoverColor}" />
+                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="{ThemeResource ButtonBackgroundPressedColor}" />
+                        <SolidColorBrush x:Key="ButtonForegroundPressed" Color="{ThemeResource ButtonForegroundPressedColor}" />
                     </Button.Resources>
                 </Button>
                 <Button x:Name="MaximizeButton" Click="MaximizeButton_Click" Width="46" Height="32" Background="Transparent" BorderThickness="0" Padding="0" VerticalAlignment="Center" CornerRadius="4">
                     <FontIcon Glyph="&#xE922;" FontSize="10" />
                     <Button.Resources>
-                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#19FF9F0A" />
-                        <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#FF9F0A" />
-                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#33FF9F0A" />
-                        <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#CC7F08" />
+                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource ButtonBackgroundHoverColor}" />
+                        <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="{ThemeResource ButtonForegroundHoverColor}" />
+                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="{ThemeResource ButtonBackgroundPressedColor}" />
+                        <SolidColorBrush x:Key="ButtonForegroundPressed" Color="{ThemeResource ButtonForegroundPressedColor}" />
                     </Button.Resources>
                 </Button>
                 <Button x:Name="CloseButton" Click="CloseButton_Click" Width="46" Height="32" Background="Transparent" BorderThickness="0" Padding="0" VerticalAlignment="Center" CornerRadius="4">
                     <FontIcon Glyph="&#xE8BB;" FontSize="10" />
                     <Button.Resources>
-                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#E81123" />
-                        <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="White" />
-                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#CC0D1A" />
-                        <SolidColorBrush x:Key="ButtonForegroundPressed" Color="White" />
+                        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource CloseButtonBackgroundHoverColor}" />
+                        <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="{ThemeResource CloseButtonForegroundHoverColor}" />
+                        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="{ThemeResource CloseButtonBackgroundPressedColor}" />
+                        <SolidColorBrush x:Key="ButtonForegroundPressed" Color="{ThemeResource CloseButtonForegroundPressedColor}" />
                     </Button.Resources>
                 </Button>
             </StackPanel>
@@ -84,7 +84,7 @@
                                 
                                 <!-- Animated Ball (Visible when running) -->
                                 <Grid x:Name="MonitorRunningIcon" Visibility="Collapsed">
-                                    <Ellipse Width="10" Height="10" Fill="{StaticResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                    <Ellipse Width="10" Height="10" Fill="{ThemeResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                                         <Ellipse.RenderTransform>
                                             <ScaleTransform x:Name="MonitorBallScale" ScaleX="1" ScaleY="1" />
                                         </Ellipse.RenderTransform>

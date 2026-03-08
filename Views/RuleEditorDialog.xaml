@@ -9,7 +9,7 @@
     Title="规则编辑"
     Style="{ThemeResource DefaultContentDialogStyle}">
 
-    <Grid Width="400" Height="450" Background="{StaticResource CardBackgroundBrush}">
+    <Grid Width="400" Height="450" Background="{ThemeResource CardBackground}">
         <Grid x:Name="MainForm">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
@@ -30,7 +30,7 @@
 
                     <!-- CPU Performance -->
                     <StackPanel Spacing="12">
-                        <TextBlock Text="CPU 性能配置" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock Text="CPU 性能配置" FontWeight="SemiBold" Foreground="{ThemeResource TextPrimary}" />
                         
                         <Grid ColumnSpacing="12" RowSpacing="12">
                             <Grid.ColumnDefinitions>
@@ -44,13 +44,13 @@
 
                             <!-- Priority -->
                             <StackPanel Spacing="4" Grid.Row="0" Grid.Column="0">
-                                <TextBlock Text="CPU 优先级" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="CPU 优先级" FontSize="12" Foreground="{ThemeResource TextSecondary}"/>
                                 <ComboBox x:Name="PriorityComboBox" HorizontalAlignment="Stretch" />
                             </StackPanel>
 
                             <!-- Affinity -->
                             <StackPanel Spacing="4" Grid.Row="0" Grid.Column="1">
-                                <TextBlock Text="CPU 核心" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="CPU 核心" FontSize="12" Foreground="{ThemeResource TextSecondary}"/>
                                 <Button x:Name="AffinityButton" Content="所有处理器" HorizontalAlignment="Stretch" Click="ShowAffinityOverlay_Click" />
                             </StackPanel>
                             
@@ -64,7 +64,7 @@
 
                     <!-- Other Resources -->
                     <StackPanel Spacing="12">
-                        <TextBlock Text="其他资源优先级" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock Text="其他资源优先级" FontWeight="SemiBold" Foreground="{ThemeResource TextPrimary}" />
                         
                         <Grid ColumnSpacing="12" RowSpacing="12">
                             <Grid.ColumnDefinitions>
@@ -75,19 +75,19 @@
 
                             <!-- I/O -->
                             <StackPanel Spacing="4" Grid.Column="0">
-                                <TextBlock Text="I/O 优先级" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="I/O 优先级" FontSize="12" Foreground="{ThemeResource TextSecondary}"/>
                                 <ComboBox x:Name="IoPriorityComboBox" HorizontalAlignment="Stretch" />
                             </StackPanel>
 
                             <!-- Memory -->
                             <StackPanel Spacing="4" Grid.Column="1">
-                                <TextBlock Text="内存优先级" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="内存优先级" FontSize="12" Foreground="{ThemeResource TextSecondary}"/>
                                 <ComboBox x:Name="MemoryPriorityComboBox" HorizontalAlignment="Stretch" />
                             </StackPanel>
 
                             <!-- GPU -->
                             <StackPanel Spacing="4" Grid.Column="2">
-                                <TextBlock Text="GPU 优先级" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                <TextBlock Text="GPU 优先级" FontSize="12" Foreground="{ThemeResource TextSecondary}"/>
                                 <ComboBox x:Name="GpuPriorityComboBox" HorizontalAlignment="Stretch" />
                             </StackPanel>
                         </Grid>
@@ -95,7 +95,7 @@
                     
                     <!-- Execution Control -->
                     <StackPanel Spacing="12">
-                        <TextBlock Text="执行控制" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock Text="执行控制" FontWeight="SemiBold" Foreground="{ThemeResource TextPrimary}" />
                         <StackPanel Orientation="Horizontal" Spacing="16">
                             <CheckBox x:Name="KillCheck" Content="结束进程" />
                             <CheckBox x:Name="KillTreeCheck" Content="结束进程树" />
@@ -109,13 +109,13 @@
 
             <!-- Footer Buttons -->
             <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,24,0,0">
-                <Button Content="保存" Click="SaveButton_Click" Width="80" Background="{StaticResource AccentBrush}" Foreground="White" BorderThickness="0"/>
+                <Button Content="保存" Click="SaveButton_Click" Width="80" Background="{ThemeResource AccentBrush}" Foreground="White" BorderThickness="0"/>
                 <Button Content="取消" Click="CancelButton_Click" Width="80"/>
             </StackPanel>
         </Grid>
 
         <!-- Affinity Overlay -->
-        <Grid x:Name="AffinityOverlay" Visibility="Collapsed" Background="{StaticResource CardBackgroundBrush}" CornerRadius="8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Padding="0">
+        <Grid x:Name="AffinityOverlay" Visibility="Collapsed" Background="{ThemeResource CardBackground}" CornerRadius="8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Padding="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -123,9 +123,9 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Spacing="10" Margin="0,0,0,10">
-                <TextBlock x:Name="AffinitySubtitle" Text="允许哪些处理器运行此程序？" Foreground="{StaticResource TextSecondaryBrush}" Opacity="0.7"/>
+                <TextBlock x:Name="AffinitySubtitle" Text="允许哪些处理器运行此程序？" Foreground="{ThemeResource TextSecondary}" Opacity="0.7"/>
                 <CheckBox x:Name="AllProcessorsCheck" Content="所有处理器" Click="AllProcessors_Click"/>
-                <Rectangle Height="1" Fill="{StaticResource CardBorderBrush}" />
+                <Rectangle Height="1" Fill="{ThemeResource CardBorder}" />
             </StackPanel>
 
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
@@ -135,7 +135,7 @@
             </ScrollViewer>
 
             <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,16,0,0">
-                <Button Content="确定" Click="AffinityOk_Click" Width="80" Background="{StaticResource AccentBrush}" Foreground="White" BorderThickness="0"/>
+                <Button Content="确定" Click="AffinityOk_Click" Width="80" Background="{ThemeResource AccentBrush}" Foreground="White" BorderThickness="0"/>
                 <Button Content="取消" Click="AffinityCancel_Click" Width="80"/>
             </StackPanel>
         </Grid>

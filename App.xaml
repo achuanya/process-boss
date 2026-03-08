@@ -10,28 +10,11 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
-                <!-- Other merged dictionaries here -->
+                <ResourceDictionary Source="Themes/ThemeResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <!-- Other app resources here -->
-            <SolidColorBrush x:Key="AppBackgroundBrush" Color="#F5F5F7"/>
-            <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FFFFFF"/>
-            <SolidColorBrush x:Key="CardBorderBrush" Color="#E5E5E5"/>
-            <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1D1D1F"/>
-            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#86868B"/>
-            <SolidColorBrush x:Key="AccentBrush" Color="#FF9F0A"/> <!-- Apple Orange -->
+            
             <ThemeShadow x:Key="SharedShadow" />
-            
-            <!-- Override System Accent Color for ToggleSwitch and other controls -->
-            <Color x:Key="SystemAccentColor">#FF9F0A</Color>
-            <Color x:Key="SystemAccentColorLight1">#FFB340</Color>
-            <Color x:Key="SystemAccentColorLight2">#FFC777</Color>
-            <Color x:Key="SystemAccentColorLight3">#FFDBAE</Color>
-            <Color x:Key="SystemAccentColorDark1">#CC7F08</Color>
-            <Color x:Key="SystemAccentColorDark2">#995F06</Color>
-            <Color x:Key="SystemAccentColorDark3">#663F04</Color>
-            
-            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FF9F0A" />
-            <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#FF9F0A" />
+
             
             <converters:StringVisibilityConverter x:Key="StringVisibilityConverter" />
             <converters:PrefixConverter x:Key="PrefixConverter" />
