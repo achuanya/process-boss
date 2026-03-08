@@ -44,7 +44,7 @@
                                     </Grid.ColumnDefinitions>
                                     
                                     <!-- Hover/Selected visual overlay -->
-                                    <Border Grid.ColumnSpan="2" Background="{ThemeResource ListHoverBackground}" CornerRadius="10" Margin="-8" IsHitTestVisible="False" Opacity="0" x:Name="HoverOverlay"/>
+                                    <Border Grid.ColumnSpan="2" Background="{ThemeResource ListHoverBackground}" CornerRadius="12" Margin="-16" IsHitTestVisible="False" Opacity="0" x:Name="HoverOverlay"/>
 
                                     <StackPanel Spacing="4">
                                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">

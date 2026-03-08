@@ -26,7 +26,7 @@
             <Color x:Key="CloseButtonForegroundPressedColor">#000000</Color>
             
             <!-- Tags & Badges: Silver styling -->
-            <Color x:Key="RuleItemTagBackgroundColor">#F3F4F6</Color>
+            <Color x:Key="RuleItemTagBackgroundColor">#E5E7EB</Color>
             
             <!-- Kill badge is now silver too, abandoning red -->
             <Color x:Key="RuleItemKillBackgroundColor">#E5E7EB</Color>
@@ -82,7 +82,7 @@
             <Color x:Key="CloseButtonBackgroundPressedColor">#D1D5DB</Color>
             <Color x:Key="CloseButtonForegroundPressedColor">#000000</Color>
             
-            <Color x:Key="RuleItemTagBackgroundColor">#F3F4F6</Color>
+            <Color x:Key="RuleItemTagBackgroundColor">#E5E7EB</Color>
             
             <Color x:Key="RuleItemKillBackgroundColor">#E5E7EB</Color>
             <Color x:Key="RuleItemKillForegroundColor">#374151</Color>
