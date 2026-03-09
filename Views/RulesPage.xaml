@@ -102,8 +102,13 @@
                                             </Border>
                                             
                                             <!-- Kill (Red) -->
-                                            <Border Visibility="{x:Bind IsKillSet}">
+                                            <Border Visibility="{x:Bind IsKillSet, Converter={StaticResource BooleanToVisibilityConverter}}">
                                                 <TextBlock Text="自动结束" />
+                                            </Border>
+                                            
+                                            <!-- Default Config -->
+                                            <Border Visibility="{x:Bind IsDefaultConfig, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                <TextBlock Text="默认配置" />
                                             </Border>
                                         </StackPanel>
                                     </StackPanel>

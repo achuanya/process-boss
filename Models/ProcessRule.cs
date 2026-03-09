@@ -31,5 +31,17 @@ namespace ProcessBoss.Models
 
         [JsonIgnore]
         public bool IsKillSet => KillOnStart || KillTreeOnStart;
+
+        [JsonIgnore]
+        public bool IsDefaultConfig => 
+            Priority == ProcessPriority.Unchanged &&
+            CpuAffinityMask == 0 &&
+            !EnableEfficiencyMode &&
+            EnableDynamicThreadPriorityBoost == true &&
+            IoPriority == ProcessIoPriority.Unchanged &&
+            MemoryPriority == ProcessMemoryPriority.Unchanged &&
+            GpuPriority == ProcessGpuPriority.Unchanged &&
+            !KillOnStart &&
+            !KillTreeOnStart;
     }
 }

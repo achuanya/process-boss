@@ -65,7 +65,7 @@
             <NavigationView.MenuItems>
                 <NavigationViewItem Content="规则列表" Tag="Rules">
                     <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE8F4;" FontSize="14"/>
+                        <FontIcon Glyph="&#xEA37;" FontSize="14"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
                 <NavigationViewItem Content="系统进程" Tag="Processes">
