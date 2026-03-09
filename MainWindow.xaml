@@ -73,6 +73,11 @@
                         <FontIcon Glyph="&#xE950;" FontSize="14"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
+                <NavigationViewItem Content="软件设置" Tag="Settings">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE713;" FontSize="14"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
                 <NavigationViewItemSeparator />
                 <NavigationViewItem x:Name="MonitorToggleItem" Tag="ToggleMonitor" SelectsOnInvoked="False">
                     <NavigationViewItem.Content>

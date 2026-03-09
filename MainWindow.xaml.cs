@@ -129,6 +129,9 @@ namespace ProcessBoss
                             procPage.Initialize(_configService, _monitorService);
                         }
                         break;
+                    case "Settings":
+                        ContentFrame.Navigate(typeof(SettingsPage));
+                        break;
                 }
             }
         }
